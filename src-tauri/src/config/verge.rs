@@ -14,6 +14,9 @@ use smartstring::alias::String;
 #[derive(Default, Debug, Clone, Deserialize, Serialize, specta::Type)]
 #[serde(default)]
 pub struct IVerge {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub claude_routing: Option<super::ClaudeRouting>,
+
     /// silent | error | warn | info | debug | trace
     #[specta(type = Option<std::string::String>)]
     pub app_log_level: Option<String>,
@@ -334,6 +337,10 @@ impl IVerge {
         match dirs::verge_path() {
             Ok(path) => match help::read_yaml::<Self>(&path).await {
                 Ok(mut config) => {
+                    // Imported preferences cannot enable unsupported coexistence features.
+                    config.enable_tun_mode = Some(false);
+                    config.enable_proxy_guard = Some(false);
+                    config.auto_check_update = Some(false);
                     if let Some(start_page) = config.start_page.clone()
                         && start_page == "/home"
                     {
@@ -377,6 +384,7 @@ impl IVerge {
             common_tray_icon: Some(false),
             sysproxy_tray_icon: Some(false),
             tun_tray_icon: Some(false),
+            enable_tun_mode: Some(false),
             enable_auto_launch: Some(false),
             enable_silent_start: Some(false),
             enable_hover_jump_navigator: Some(true),
@@ -394,16 +402,16 @@ impl IVerge {
             #[cfg(target_os = "linux")]
             verge_tproxy_enabled: Some(false),
             verge_mixed_port: Some(network::ports::DEFAULT_MIXED),
-            verge_socks_port: Some(7898),
+            verge_socks_port: Some(network::ports::DEFAULT_SOCKS),
             verge_socks_enabled: Some(false),
-            verge_port: Some(7899),
+            verge_port: Some(network::ports::DEFAULT_HTTP),
             verge_http_enabled: Some(false),
             enable_proxy_guard: Some(false),
             enable_bypass_check: Some(true),
             use_default_bypass: Some(true),
             proxy_guard_duration: Some(30),
             auto_close_connection: Some(true),
-            auto_check_update: Some(true),
+            auto_check_update: Some(false),
             enable_builtin_enhanced: Some(true),
             auto_log_clean: Some(2), // 1: 1天, 2: 7天, 3: 30天, 4: 90天
             enable_auto_backup_schedule: Some(false),
@@ -441,6 +449,7 @@ impl IVerge {
         }
 
         patch!(app_log_level);
+        patch!(claude_routing);
         patch!(app_log_max_size);
         patch!(app_log_max_count);
 

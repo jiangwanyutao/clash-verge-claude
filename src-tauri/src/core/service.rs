@@ -790,31 +790,13 @@ fn force_reinstall_service() -> Result<()> {
 /// asks for it. The digest pins the exact bytes being attested: it rides the elevated process's
 /// command line, which no other local account can alter, so a file swapped on disk after this
 /// hash was computed is refused by the installer instead of published.
-pub fn stage_approved_core(core_path: &Path) -> Result<()> {
-    tokio::task::block_in_place(|| {
-        invoke_service_install(
-            &[clash_verge_service_ipc::management::CoreSource {
-                name: core_path
-                    .file_name()
-                    .context("core has no filename")?
-                    .to_string_lossy()
-                    .into_owned(),
-                path: core_path.to_path_buf(),
-            }],
-            true,
-        )
-    })
+pub fn stage_approved_core(_core_path: &Path) -> Result<()> {
+    anyhow::bail!("Privileged service core staging is disabled in Claude Verge")
 }
 
 /// Dispatches a privileged platform operation on a blocking thread.
-pub(crate) fn run_privileged_service_action(action: PendingAction) -> Result<()> {
-    let (operation, label): (fn() -> Result<()>, &'static str) = match action {
-        PendingAction::Install => (install_service, "install service"),
-        PendingAction::Uninstall => (uninstall_service, "uninstall service"),
-        PendingAction::Reinstall => (reinstall_service, "reinstall service"),
-        PendingAction::ForceReinstall => (force_reinstall_service, "force reinstall service"),
-    };
-    tokio::task::block_in_place(operation).with_context(|| format!("{label} failed"))
+pub(crate) fn run_privileged_service_action(_action: PendingAction) -> Result<()> {
+    anyhow::bail!("Privileged service management is disabled in Claude Verge")
 }
 
 /// Builds the same runtime bundle description for both service start and staging.
@@ -1953,12 +1935,8 @@ impl ServiceManager {
         RUN_STATE.withdraw_sidecar_allowance()
     }
 
-    pub async fn detect_startup_status(&self) {
-        if cfg!(feature = "dev-sidecar") {
-            RUN_STATE.accept_sidecar();
-            return;
-        }
-        RUN_STATE.observe_current_health().await;
+    pub fn detect_startup_status(&self) {
+        RUN_STATE.accept_sidecar();
     }
 
     fn set_status(&self, status: ServiceStatus) {
@@ -1983,9 +1961,9 @@ impl ServiceManager {
         self.run_operation(async { self.confirm_ready().await }).await
     }
 
-    pub async fn handle_service_status(&self, status: ServiceStatus) -> Result<()> {
-        // Box the large operation future once instead of carrying it in every calling command.
-        self.run_operation(Box::pin(self.apply_service_status(status))).await
+    pub fn handle_service_status(&self, status: ServiceStatus) -> Result<()> {
+        let _ = status;
+        anyhow::bail!("Service management is disabled in the isolated Claude Verge build")
     }
 
     async fn apply_service_status(&self, status: ServiceStatus) -> Result<()> {

@@ -180,10 +180,7 @@ async fn init_silent_updater() {
         feat::restart_app().await;
     }
 
-    let app_handle = app_handle.clone();
-    tokio::spawn(async move {
-        SilentUpdater::global().start_background_check(app_handle).await;
-    });
+    SilentUpdater::global().start_background_check(app_handle.clone());
 
     logging!(info, Type::Setup, "Silent updater initialized");
 }
@@ -217,7 +214,7 @@ async fn init_verge_config_before_window() -> bool {
 async fn init_service_manager() {
     clash_verge_service_ipc::set_config(Some(ServiceManager::config())).await;
 
-    SERVICE_MANAGER.detect_startup_status().await;
+    SERVICE_MANAGER.detect_startup_status();
 }
 
 async fn init_core_manager() -> bool {

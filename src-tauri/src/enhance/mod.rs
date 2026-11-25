@@ -957,8 +957,16 @@ pub async fn enhance(
     )
     .await;
 
+    let config = if let Some(routing) = &Config::verge().await.latest_arc().claude_routing {
+        routing.apply(config)?
+    } else {
+        config
+    };
+
     notify_discarded_keys(authoritative.overridden(&authoritative, &authoritative.current(&config)));
     let config = authoritative.enforce(config);
+    // The isolated build must keep TUN off even after imported profiles and scripts.
+    let config = use_tun(config, false);
     let config = ensure_lan_bind_address(config);
 
     let config = cleanup_proxy_groups(config);
@@ -1058,6 +1066,22 @@ mod fake_ip_tests {
 #[allow(clippy::expect_used, clippy::panic, reason = "tests assert by panicking")]
 mod use_tun_tests {
     use super::{Mapping, Value, use_tun};
+
+    #[test]
+    fn sidecar_final_override_disables_imported_tun() {
+        let mut tun = Mapping::new();
+        tun.insert(Value::from("enable"), Value::from(true));
+        tun.insert(Value::from("stack"), Value::from("gvisor"));
+        let mut config = Mapping::new();
+        config.insert(Value::from("tun"), Value::Mapping(tun));
+        let result = use_tun(config, false);
+        let tun = result
+            .get("tun")
+            .and_then(Value::as_mapping)
+            .expect("TUN mapping retained");
+        assert_eq!(tun.get("enable"), Some(&Value::from(false)));
+        assert_eq!(tun.get("stack"), Some(&Value::from("gvisor")));
+    }
 
     fn mapping(pairs: &[(&str, Value)]) -> Mapping {
         let mut map = Mapping::new();

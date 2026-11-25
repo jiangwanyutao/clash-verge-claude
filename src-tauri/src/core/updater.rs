@@ -330,6 +330,9 @@ impl SilentUpdater {
 
     /// Installs a newer cached update before normal startup, if the user confirms.
     pub async fn try_install_on_startup(&self, app_handle: &tauri::AppHandle) -> bool {
+        if !crate::constants::FORK_UPDATES_ENABLED {
+            return false;
+        }
         if !Config::verge().await.latest_arc().auto_check_update.unwrap_or(true) {
             Self::delete_cache();
             return false;
@@ -431,6 +434,10 @@ impl SilentUpdater {
         version: &str,
         on_event: impl Fn(DownloadEvent) + Sync,
     ) -> Result<bool> {
+        anyhow::ensure!(
+            crate::constants::FORK_UPDATES_ENABLED,
+            "Updates are disabled until Claude Verge has its own signed release channel"
+        );
         let cancel = CancellationToken::new();
         *self.manual_cancel.lock() = Some(cancel.clone());
         let prepared = tokio::select! {
@@ -680,18 +687,7 @@ impl SilentUpdater {
         Ok(())
     }
 
-    pub async fn start_background_check(&self, app_handle: tauri::AppHandle) {
-        // Permanent watcher: daily update cycles for the lifetime of the app.
-        logging!(info, Type::System, "Silent updater: background task started");
-
-        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-
-        loop {
-            if let Err(e) = self.check_and_download(&app_handle).await {
-                logging!(warn, Type::System, "Silent updater: cycle error: {e}");
-            }
-
-            tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
-        }
+    pub fn start_background_check(&self, _app_handle: tauri::AppHandle) {
+        // Updates require a separately signed fork release channel.
     }
 }

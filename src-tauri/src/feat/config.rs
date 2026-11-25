@@ -5,6 +5,14 @@ use serde_yaml_ng::Mapping;
 use tokio::sync::MutexGuard;
 
 pub async fn patch_clash(patch: &Mapping) -> Result<()> {
+    anyhow::ensure!(
+        patch
+            .get("tun")
+            .and_then(|tun| tun.get("enable"))
+            .and_then(serde_yaml_ng::Value::as_bool)
+            != Some(true),
+        "Claude Verge currently supports sidecar mode only; TUN is unavailable"
+    );
     let config_write = Config::try_lock_config_write()?;
     super::executor::apply(
         &config_write,
@@ -38,6 +46,17 @@ pub(super) async fn apply_verge_patch_locked(
     patch: &IVerge,
     not_save_file: bool,
 ) -> Result<()> {
+    anyhow::ensure!(
+        patch.enable_tun_mode != Some(true),
+        "Claude Verge currently supports sidecar mode only; TUN is unavailable"
+    );
+    anyhow::ensure!(
+        patch.enable_proxy_guard != Some(true),
+        "Proxy guard is unavailable in the coexistence build"
+    );
+    if let Some(routing) = &patch.claude_routing {
+        routing.validate()?;
+    }
     super::executor::apply(
         _config_write,
         super::executor::Patch::Verge {

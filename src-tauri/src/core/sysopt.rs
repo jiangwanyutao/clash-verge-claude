@@ -38,6 +38,21 @@ const fn proxy_apply_steps(sys_enabled: bool, auto_enabled: bool) -> [ProxyApply
 /// Maximum guard drain time before OS state is unknown.
 const GUARD_DRAIN_TIMEOUT: Duration = Duration::from_secs(10);
 
+/// A disabled preference is not ownership of the machine's global proxy settings.
+fn owns_proxy_target(expected: &(Sysproxy, Autoproxy), current: &(Sysproxy, Autoproxy)) -> bool {
+    let (sys, auto) = expected;
+    let (current_sys, current_auto) = current;
+    if auto.enable {
+        current_auto.enable && current_auto.url == auto.url && !current_sys.enable
+    } else {
+        sys.enable
+            && current_sys.enable
+            && current_sys.host == sys.host
+            && current_sys.port == sys.port
+            && !current_auto.enable
+    }
+}
+
 /// Authoritative OS state after a failed proxy write.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum AuthoritativeState {
@@ -416,6 +431,10 @@ impl Sysopt {
     pub(super) async fn update_sysproxy(&self) -> Result<()> {
         let _lock = self.update_lock.lock().await;
         let verge = Config::verge().await.latest_arc();
+        if !verge.enable_system_proxy.unwrap_or_default() {
+            drop(_lock);
+            return self.reset_sysproxy().await;
+        }
         // Configured, not live: this runs while the Core is being started or restarted, and
         // asking a Core that is not up yet would only fall back here anyway.
         let port = MixedPort::desired().await;
@@ -437,8 +456,7 @@ impl Sysopt {
             sys.bypass = bypass.into();
             auto.url = format!("http://{proxy_host}:{pac_port}/commands/pac");
 
-            // `enable_system_proxy` is the master switch.
-            // When disabled, force clear both global proxy and PAC at OS level.
+            // The disabled master switch returns through the ownership-checked reset above.
             let guard_type = if !sys_enable {
                 sys.enable = false;
                 auto.enable = false;
@@ -543,6 +561,17 @@ impl Sysopt {
         let _guard_operation = self.guard_operation_lock.lock().await;
         let drained = self.stop_proxy_guard_locked().await;
 
+        let expected = self.inner_proxy.read().clone();
+        let owned = tokio::task::spawn_blocking(move || {
+            let current = (Sysproxy::get_system_proxy()?, Autoproxy::get_auto_proxy()?);
+            Ok::<_, sysproxy::Error>(owns_proxy_target(&expected, &current))
+        })
+        .await?;
+        // Failed reads and another application's target must never authorize a global clear.
+        if !owned.unwrap_or(false) {
+            return Ok(());
+        }
+
         // 直接关闭所有代理
         let (sys, auto) = {
             let (sys, auto) = &mut *self.inner_proxy.write();
@@ -570,6 +599,43 @@ impl Sysopt {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn disabled_fork_does_not_own_another_clients_proxy() {
+        let expected = (sysproxy::Sysproxy::default(), sysproxy::Autoproxy::default());
+        let mut current = expected.clone();
+        current.0.enable = true;
+        current.0.host = "127.0.0.1".into();
+        current.0.port = 7897;
+        assert!(!super::owns_proxy_target(&expected, &current));
+    }
+
+    #[test]
+    fn only_matching_enabled_proxy_is_owned() {
+        let mut expected = (sysproxy::Sysproxy::default(), sysproxy::Autoproxy::default());
+        expected.0.enable = true;
+        expected.0.host = "127.0.0.1".into();
+        expected.0.port = 17897;
+        assert!(super::owns_proxy_target(&expected, &expected));
+        let mut other = expected.clone();
+        other.0.port = 7897;
+        assert!(!super::owns_proxy_target(&expected, &other));
+        other = expected.clone();
+        other.1.enable = true;
+        other.1.url = "http://127.0.0.1:1234/pac".into();
+        assert!(!super::owns_proxy_target(&expected, &other));
+    }
+
+    #[test]
+    fn pac_ownership_requires_the_forks_exact_url() {
+        let mut expected = (sysproxy::Sysproxy::default(), sysproxy::Autoproxy::default());
+        expected.1.enable = true;
+        expected.1.url = "http://127.0.0.1:12000/commands/pac".into();
+        assert!(super::owns_proxy_target(&expected, &expected));
+        let mut other = expected.clone();
+        other.1.url = "http://127.0.0.1:13000/commands/pac".into();
+        assert!(!super::owns_proxy_target(&expected, &other));
+    }
+
     use super::{
         AuthoritativeState, BYPASS_SEPARATOR, DEFAULT_BYPASS, OsProxyState, ProxyApplyStep, SystemProxyStateUnknown,
         authoritative_state, authoritative_state_from, classify_os_proxy_state, disable_both,

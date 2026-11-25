@@ -9,14 +9,14 @@ use std::{
 use tauri::Manager as _;
 
 #[cfg(not(feature = "verge-dev"))]
-pub static APP_ID: &str = "io.github.clash-verge-rev.clash-verge-rev";
+pub static APP_ID: &str = "io.github.jiangwanyutao.claude-verge";
 #[cfg(not(feature = "verge-dev"))]
-pub static BACKUP_DIR: &str = "clash-verge-rev-backup";
+pub static BACKUP_DIR: &str = "claude-verge-backup";
 
 #[cfg(feature = "verge-dev")]
-pub static APP_ID: &str = "io.github.clash-verge-rev.clash-verge-rev.dev";
+pub static APP_ID: &str = "io.github.jiangwanyutao.claude-verge.dev";
 #[cfg(feature = "verge-dev")]
-pub static BACKUP_DIR: &str = "clash-verge-rev-backup-dev";
+pub static BACKUP_DIR: &str = "claude-verge-backup-dev";
 
 pub static CLASH_CONFIG: &str = "config.yaml";
 pub static VERGE_CONFIG: &str = "verge.yaml";
@@ -245,7 +245,7 @@ fn sidecar_ipc_path_for(_app_root: &std::path::Path, identity: &clash_verge_serv
 fn sidecar_pipe_name(identity: &clash_verge_service_ipc::OwnerIdentity, is_dev: bool) -> String {
     let flavor = if is_dev { "dev" } else { "release" };
     format!(
-        r"\\.\pipe\verge-mihomo-sidecar-{flavor}-{}",
+        r"\\.\pipe\claude-verge-mihomo-sidecar-{flavor}-{}",
         clash_verge_service_ipc::owner_key(identity)
     )
 }
@@ -259,7 +259,7 @@ mod ipc_tests {
     #[test]
     fn sidecar_ipc_stays_in_the_app_root() {
         let identity = OwnerIdentity::Unix { uid: 501, gid: 20 };
-        let app_root = Path::new("/home/test/.local/share/io.github.clash-verge-rev.clash-verge-rev");
+        let app_root = Path::new("/home/test/.local/share/io.github.jiangwanyutao.claude-verge");
         let path = sidecar_ipc_path_for(app_root, &identity);
 
         assert_eq!(path, app_root.join("verge-mihomo.sock"));
@@ -279,8 +279,7 @@ mod ipc_tests {
     #[test]
     fn sidecar_ipc_ignores_long_app_root_and_fits_sockaddr_un() -> anyhow::Result<()> {
         let identity = OwnerIdentity::Unix { uid: 501, gid: 20 };
-        let app_root =
-            Path::new("/Users/support/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev.dev");
+        let app_root = Path::new("/Users/support/Library/Application Support/io.github.jiangwanyutao.claude-verge.dev");
         let path = sidecar_ipc_path_for(app_root, &identity)?;
 
         assert!(!path.starts_with(app_root));
@@ -311,7 +310,7 @@ mod ipc_tests {
         assert_eq!(
             path,
             Path::new(&format!(
-                r"\\.\pipe\verge-mihomo-sidecar-{}-{}",
+                r"\\.\pipe\claude-verge-mihomo-sidecar-{}-{}",
                 if cfg!(feature = "verge-dev") { "dev" } else { "release" },
                 clash_verge_service_ipc::owner_key(&identity)
             ))
@@ -349,11 +348,11 @@ mod windows_pipe_name_tests {
 
         assert_eq!(
             sidecar_pipe_name(&identity, false),
-            format!(r"\\.\pipe\verge-mihomo-sidecar-release-{owner_key}")
+            format!(r"\\.\pipe\claude-verge-mihomo-sidecar-release-{owner_key}")
         );
         assert_eq!(
             sidecar_pipe_name(&identity, true),
-            format!(r"\\.\pipe\verge-mihomo-sidecar-dev-{owner_key}")
+            format!(r"\\.\pipe\claude-verge-mihomo-sidecar-dev-{owner_key}")
         );
     }
 }

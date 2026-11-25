@@ -31,7 +31,7 @@ async fn execute_service_operation_sync(status: ServiceStatus, error_code: &str)
                 .await
                 .map_err(|error| proxy_aware_coded_error(&error, error_code))?;
         }
-        SERVICE_MANAGER.handle_service_status(status).await
+        SERVICE_MANAGER.handle_service_status(status)
     };
     #[cfg(windows)]
     return finish_service_installation(result, error_code, |reason| async move {

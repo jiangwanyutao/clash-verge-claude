@@ -161,10 +161,7 @@ impl CoreManager {
     #[tracing::instrument(skip_all, level = "info", fields(pid = tracing::field::Empty))]
     pub(super) async fn start_core_by_sidecar(&self) -> Result<()> {
         self.wait_for_sidecar_exit().await?;
-        let execution = clash_verge_service_ipc::execution::reserve_sidecar()
-            .await
-            .inspect_err(service::record_residual_service)
-            .map_err(explain_core_occupancy)?;
+        // The fork owns a separate singleton, pipe and child; never reserve the upstream service slot.
         self.core_stopped();
 
         let sidecar_ipc = dirs::sidecar_ipc_path()?;
@@ -172,9 +169,7 @@ impl CoreManager {
             .mihomo()
             .update_socket_path(dirs::path_to_str(&sidecar_ipc)?.to_owned())?;
         #[cfg(target_os = "windows")]
-        let config_file = if crate::core::runstate::RUN_STATE.state().is_admin {
-            Config::generate_file().await?
-        } else {
+        let config_file = {
             // Reconciliation persists the preference later; the first spawn must already have TUN off.
             let yaml = sidecar_config_without_tun(&Config::runtime_config_yaml().await?)?;
             Config::write_runtime_file(&yaml).await?
@@ -191,7 +186,7 @@ impl CoreManager {
         let previous_mask = unsafe { tauri_plugin_clash_verge_sysinfo::libc::umask(0o077) };
         let command = app_handle
             .shell()
-            .sidecar(clash_core.as_str())
+            .sidecar(clash_core.replacen("verge-mihomo", "claude-mihomo", 1))
             .map_err(|error| anyhow::anyhow!("failed to build sidecar command for core {clash_core:?}: {error:#}"))?;
         let command = command.args([
             "-d",
@@ -218,7 +213,9 @@ impl CoreManager {
             )
         })?;
         let (terminated, termination) = tokio::sync::oneshot::channel();
-        *self.sidecar_exit.lock().await = Some(execution.release_after_exit(child.pid(), termination));
+        *self.sidecar_exit.lock().await = Some(tokio::spawn(async move {
+            let _ = termination.await;
+        }));
         #[cfg(target_os = "windows")]
         let job = {
             match create_and_assign_sidecar_job(child.pid()) {

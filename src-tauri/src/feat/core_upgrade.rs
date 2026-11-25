@@ -164,6 +164,7 @@ enum ServiceStaging {
 /// The sidecar next to the app executable. On macOS development builds the Service runs a
 /// staged copy of this file, so writing here is what makes an upgrade survive the next start.
 fn managed_core_path(core: &str) -> Result<PathBuf> {
+    let core = core.replacen("verge-mihomo", "claude-mihomo", 1);
     let extension = if cfg!(windows) { ".exe" } else { "" };
     let path = current_exe()
         .context("failed to locate the current executable")?

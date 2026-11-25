@@ -398,12 +398,6 @@ impl CoreManager {
             if !can_allow_sidecar_for_session(&mode, &status) {
                 anyhow::bail!("Sidecar continuation is not allowed from {mode:?} / {status:?}");
             }
-            #[cfg(target_os = "windows")]
-            if matches!(*mode, RunningMode::NotRunning) {
-                clash_verge_service_ipc::execution::check_sidecar_available()
-                    .await
-                    .map_err(super::state::explain_core_occupancy)?;
-            }
             if !matches!(status, ServiceStatus::SidecarAllowed) {
                 SERVICE_MANAGER.allow_sidecar_for_session()?;
             }
@@ -473,11 +467,7 @@ impl CoreManager {
         self.controlled_stop_core_inner().await?;
 
         let result = run_uninstall_transition(
-            || async {
-                SERVICE_MANAGER
-                    .handle_service_status(ServiceStatus::UninstallRequired)
-                    .await
-            },
+            || async { SERVICE_MANAGER.handle_service_status(ServiceStatus::UninstallRequired) },
             || async {
                 // Must be asked after the uninstall: until then the Service still makes TUN capable.
                 let tun_enabled = Config::verge().await.latest_arc().enable_tun_mode.unwrap_or(false);
@@ -626,7 +616,7 @@ impl CoreManager {
             return Ok(());
         }
 
-        let startup = self.prepare_startup().await;
+        let startup = self.prepare_startup();
         tracing::Span::current().record("decision", tracing::field::debug(&startup));
         if matches!(startup, StartupDecision::Wait) {
             self.rollback_failed_start().await;
@@ -675,10 +665,7 @@ impl CoreManager {
             return result;
         }
 
-        #[cfg(target_os = "windows")]
-        if matches!(*self.get_running_mode(), RunningMode::Sidecar) {
-            self.spawn_service_handoff_watcher().await;
-        }
+        // Never hand the isolated core over to the original application's service.
 
         result
     }
@@ -753,12 +740,12 @@ impl CoreManager {
         .await
     }
 
-    async fn proxy_stop_intent(&self) -> ProxyStopIntent {
+    fn proxy_stop_intent(&self) -> ProxyStopIntent {
         let running_mode = *self.get_running_mode();
         if !cfg!(target_os = "macos") || !matches!(running_mode, RunningMode::Sidecar) {
             return ProxyStopIntent::Clear;
         }
-        proxy_stop_intent(cfg!(target_os = "macos"), running_mode, self.prepare_startup().await)
+        proxy_stop_intent(cfg!(target_os = "macos"), running_mode, self.prepare_startup())
     }
 
     async fn stop_core_unprepared_inner(&self) -> Result<()> {
@@ -789,7 +776,7 @@ impl CoreManager {
 
     pub(crate) async fn restart_core_during_config_update(&self) -> Result<()> {
         let _life = self.lifecycle_lock.lock().await;
-        let proxy_intent = self.proxy_stop_intent().await;
+        let proxy_intent = self.proxy_stop_intent();
         run_core_replacement_transition(
             || self.controlled_stop_core_with_intent(proxy_intent),
             || async {
@@ -822,18 +809,8 @@ impl CoreManager {
         self.update_config_checked().await
     }
 
-    async fn prepare_startup(&self) -> StartupDecision {
-        #[cfg(target_os = "windows")]
-        self.wait_for_service_if_needed().await;
-
-        let service_required = Config::verge().await.latest_arc().enable_tun_mode.unwrap_or(false);
-        if service_required
-            && matches!(SERVICE_MANAGER.current().await, ServiceStatus::NotInstalled)
-            && SERVICE_MANAGER.require_install_for_session().is_err()
-        {
-            return StartupDecision::Wait;
-        }
-        startup_decision(&SERVICE_MANAGER.current().await, service_required)
+    const fn prepare_startup(&self) -> StartupDecision {
+        StartupDecision::Sidecar
     }
 
     #[cfg(target_os = "windows")]
