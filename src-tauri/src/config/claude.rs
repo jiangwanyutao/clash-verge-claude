@@ -280,37 +280,29 @@ impl ClaudeRouting {
             return Ok(config);
         }
         if self.validate().is_err() {
-            let mut rules: Vec<Value> = claude_rules()
-                .into_iter()
-                .filter_map(|rule| rule.as_str().map(|text| text.replace(GROUP, "REJECT").into()))
-                .collect();
-            if let Some(existing) = config.get("rules").and_then(Value::as_sequence) {
-                rules.extend(existing.iter().cloned());
-            }
-            config.insert("rules".into(), Value::Sequence(rules));
-            return Ok(config);
+            return Ok(reject_claude(config));
         }
         let mut endpoints = self.endpoints()?;
         // Subscription extensions run first, but cannot claim our persisted control names.
         for key in ["proxies", "proxy-groups"] {
             if let Some(existing) = config.get(key).and_then(Value::as_sequence) {
-                ensure!(
-                    !existing
-                        .iter()
-                        .filter_map(|item| item.get("name").and_then(Value::as_str))
-                        .any(|name| name == GROUP || name.starts_with(PREFIX)),
-                    "Subscription conflicts with reserved Claude routing names"
-                );
+                if existing
+                    .iter()
+                    .filter_map(|item| item.get("name").and_then(Value::as_str))
+                    .any(|name| name == GROUP || name.starts_with(PREFIX))
+                {
+                    return Ok(reject_claude(config));
+                }
             }
         }
         if let Some(existing) = config.get("proxy-providers").and_then(Value::as_mapping) {
-            ensure!(
-                !existing
-                    .keys()
-                    .filter_map(Value::as_str)
-                    .any(|name| name.starts_with(PREFIX)),
-                "Subscription conflicts with reserved Claude provider names"
-            );
+            if existing
+                .keys()
+                .filter_map(Value::as_str)
+                .any(|name| name.starts_with(PREFIX))
+            {
+                return Ok(reject_claude(config));
+            }
         }
         for node in &mut endpoints.proxies {
             node.insert("name".into(), outbound(name(node)?).into());
@@ -383,6 +375,18 @@ impl ClaudeRouting {
         config.insert("rules".into(), Value::Sequence(rules));
         Ok(config)
     }
+}
+
+fn reject_claude(mut config: Mapping) -> Mapping {
+    let mut rules: Vec<Value> = claude_rules()
+        .into_iter()
+        .filter_map(|rule| rule.as_str().map(|text| text.replace(GROUP, "REJECT").into()))
+        .collect();
+    if let Some(existing) = config.get("rules").and_then(Value::as_sequence) {
+        rules.extend(existing.iter().cloned());
+    }
+    config.insert("rules".into(), Value::Sequence(rules));
+    config
 }
 
 // CleanIP Claude rules, reviewed 2026-11-25. This is a versioned snapshot, not a remote executable script.
@@ -465,7 +469,10 @@ mod tests {
         );
         let conflict: Mapping =
             serde_yaml_ng::from_str("proxy-groups: [{name: Claude-Verge, type: select, proxies: [DIRECT]}]")?;
-        assert!(settings.apply(conflict).is_err());
+        assert_eq!(
+            settings.apply(conflict)?["rules"][0].as_str(),
+            Some("DOMAIN-SUFFIX,claude.ai,REJECT")
+        );
         Ok(())
     }
 
