@@ -24,6 +24,33 @@ const entries = (value: unknown): Entry[] => {
   return value as Entry[]
 }
 
+export function addSnapshotNodes(configuration: string, source: string) {
+  let current: unknown
+  let snapshot: unknown
+  try {
+    current = configuration.trim() ? load(configuration) : {}
+    snapshot = load(source)
+  } catch {
+    throw new Error('YAML 格式错误，请检查文件。')
+  }
+  if (!isEntry(current) || !isEntry(snapshot)) {
+    throw new Error('请选择 YAML 格式的节点文件。')
+  }
+  const existing = entries(current.proxies)
+  const groups = entries(current['proxy-groups'])
+  const incoming = entries(snapshot.proxies)
+  if (!incoming.length) throw new Error('文件中没有可导入的节点。')
+  const known = new Set([...existing, ...groups].map((item) => item.name))
+  for (const node of incoming) {
+    if (known.has(node.name)) throw new Error('节点名称重复，请先重命名。')
+    known.add(node.name)
+  }
+  return {
+    configuration: dump({ ...current, proxies: [...existing, ...incoming] }),
+    names: incoming.map((node) => node.name as string),
+  }
+}
+
 export function importClaudeRouting(source: string) {
   let document: unknown
   try {

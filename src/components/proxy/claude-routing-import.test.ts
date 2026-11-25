@@ -1,7 +1,26 @@
 import { load } from 'js-yaml'
 import { expect, it } from 'vitest'
 
-import { importClaudeRouting } from './claude-routing-import'
+import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
+
+it('adds fixed nodes from a subscription cache without replacing configured exits', () => {
+  const result = addSnapshotNodes(
+    'proxies: [{name: Old, type: http}]\nproxy-groups: [{name: Existing, type: select, proxies: [Old]}]',
+    'proxies: [{name: VPS, type: vless, server: example.test, port: 443}]',
+  )
+  expect(result.names).toEqual(['VPS'])
+  expect(load(result.configuration)).toEqual({
+    proxies: [
+      { name: 'Old', type: 'http' },
+      { name: 'VPS', type: 'vless', server: 'example.test', port: 443 },
+    ],
+    'proxy-groups': [{ name: 'Existing', type: 'select', proxies: ['Old'] }],
+  })
+  expect(() =>
+    addSnapshotNodes(result.configuration, 'proxies: [{name: VPS}]'),
+  ).toThrow('名称重复')
+  expect(() => addSnapshotNodes('', 'proxies: []')).toThrow('没有可导入')
+})
 
 it('imports only Claude exits and preserves provider download dependencies', () => {
   const result = importClaudeRouting(`

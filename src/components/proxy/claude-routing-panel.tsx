@@ -16,7 +16,7 @@ import { BaseDialog } from '@/components/base'
 import { useVerge } from '@/hooks/use-verge'
 import { showNotice } from '@/services/notice-service'
 
-import { importClaudeRouting } from './claude-routing-import'
+import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
 
 type Routing = Required<NonNullable<IVergeConfig['claude_routing']>>
 
@@ -34,6 +34,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
   const [exits, setExits] = useState('')
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const snapshotRef = useRef<HTMLInputElement>(null)
 
   const save = useLockFn(async (next: Routing) => {
     setBusy(true)
@@ -199,6 +200,58 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
             onClick={() => fileRef.current?.click()}
           >
             从 YAML 文件导入
+          </Button>
+          <Typography variant="body2">
+            如果 VPS 使用动态订阅，可从其缓存的 YAML 文件添加固定节点快照。
+            快照不会自动更新；订阅变更后需重新导入。请勿分享包含密码的文件。
+          </Typography>
+          <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+            原版缓存目录：%APPDATA%\io.github.clash-verge-rev.clash-verge-rev\proxy_providers
+          </Typography>
+          <input
+            ref={snapshotRef}
+            type="file"
+            accept=".yaml,.yml,.json"
+            hidden
+            onChange={async (event) => {
+              const file = event.target.files?.[0]
+              event.target.value = ''
+              if (!file) return
+              if (file.size > 1024 * 1024) {
+                setError('请选择小于 1 MB 的配置文件。')
+                return
+              }
+              try {
+                const result = addSnapshotNodes(
+                  configuration,
+                  await file.text(),
+                )
+                setConfiguration(result.configuration)
+                setExits((previous) =>
+                  [
+                    ...previous
+                      .split('\n')
+                      .map((name) => name.trim())
+                      .filter(Boolean),
+                    ...result.names,
+                  ].join('\n'),
+                )
+                setError('')
+              } catch (failure) {
+                setError(
+                  failure instanceof Error
+                    ? failure.message
+                    : '无法读取配置文件。',
+                )
+              }
+            }}
+          />
+          <Button
+            variant="outlined"
+            disabled={busy}
+            onClick={() => snapshotRef.current?.click()}
+          >
+            添加订阅节点快照
           </Button>
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
