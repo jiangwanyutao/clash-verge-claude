@@ -24,6 +24,13 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 static CURRENT_SWITCHING_PROFILE: AtomicBool = AtomicBool::new(false);
 
+#[tauri::command]
+#[specta::specta]
+pub async fn get_original_import_status() -> std::string::String {
+    let _ = Config::profiles().await;
+    profiles::original_import_status()
+}
+
 fn profile_import_error(err: &anyhow::Error) -> std::string::String {
     if let Some(cause) = err.chain().find(|cause| cause.to_string().contains("TLS 1.0/1.1")) {
         return cause.to_string();

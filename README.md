@@ -9,7 +9,7 @@ Independent Windows fork of Clash Verge Rev, with persistent Claude routing.
 
 ## First setup
 
-1. Add your normal subscription in this app.
+1. On first startup, existing remote subscriptions and their cached profiles are copied from the original Clash Verge installation. Check the subscription page for the result and select the subscription you want to use. You can also add subscriptions manually.
 2. Open **配置出口 → 从 YAML 文件导入** and select the original app's running configuration containing the `Claude` proxy group. The importer extracts that group's exits and dependencies; it does not import scripts, rules, ports or system settings.
 3. Check the displayed exit names, save, select your exit and enable dedicated routing.
 4. Point the application you want to proxy at `http://127.0.0.1:17897`, or explicitly enable this app's system proxy when you want it to take over.
@@ -19,6 +19,8 @@ Do not copy the original app's global `Script.js`: its old Claude rules would re
 ## Coexistence
 
 The app installs as **Claude Route**, with data in `%APPDATA%\io.github.jiangwanyutao.claude-verge`. The data identifier and `claude-verge://` import protocol are retained across the rename. Its executable, core, startup task and IPC names are separate from the original app. The default mixed proxy port is **17897**. It does not migrate or delete the original installation's data.
+
+Subscription import is a one-time copy, not continuous synchronization; subsequent edits and updates are independent. Original scripts, overrides and selected nodes are not imported. If the original installation cannot be read, the subscription page reports the problem and the next startup retries.
 
 This first Windows version runs its own sidecar core. TUN, shared service management, proxy guard and automatic application updates are disabled. Both applications can remain installed and run, but Windows has one system-proxy setting: enable system proxy in only the application you intend to use. The original app's TUN or proxy guard can still affect traffic if left enabled.
 

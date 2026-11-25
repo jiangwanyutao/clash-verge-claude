@@ -16,7 +16,15 @@ import {
   RefreshRounded,
   TextSnippetOutlined,
 } from '@mui/icons-material'
-import { Box, Button, Divider, Grid, IconButton, Stack } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Divider,
+  Grid,
+  IconButton,
+  Stack,
+} from '@mui/material'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { readText } from '@tauri-apps/plugin-clipboard-manager'
 import { readTextFile } from '@tauri-apps/plugin-fs'
@@ -45,6 +53,7 @@ import {
   deleteProfile,
   enhanceProfiles,
   getRuntimeLogs,
+  getOriginalImportStatus,
   importProfile,
   reorderProfile,
   updateProfile,
@@ -80,6 +89,12 @@ const debugProfileSwitch = (action: string, profile: string, extra?: any) => {
 }
 
 const ProfilePage = () => {
+  const [originalImportStatus, setOriginalImportStatus] = useState('')
+  useEffect(() => {
+    void getOriginalImportStatus()
+      .then(setOriginalImportStatus)
+      .catch(() => setOriginalImportStatus('error'))
+  }, [])
   const { t } = useTranslation()
   const location = useLocation()
   const [url, setUrl] = useState('')
@@ -804,6 +819,20 @@ const ProfilePage = () => {
         </Box>
       }
     >
+      {originalImportStatus && (
+        <Alert
+          severity={originalImportStatus === 'error' ? 'warning' : 'info'}
+          sx={{ mx: '10px', mt: 1 }}
+        >
+          {originalImportStatus === 'imported'
+            ? '已读取原版 Clash Verge 的订阅，后续由本软件独立管理。'
+            : originalImportStatus === 'empty'
+              ? '原版 Clash Verge 没有可导入的订阅。'
+              : originalImportStatus === 'no_source'
+                ? '未找到原版 Clash Verge 的订阅配置。'
+                : '读取原版订阅失败，请检查原版配置和文件权限后重启重试。'}
+        </Alert>
+      )}
       <Stack
         direction="row"
         spacing={1}

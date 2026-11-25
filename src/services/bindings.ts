@@ -4,6 +4,8 @@ import { invoke as __TAURI_INVOKE, Channel } from '@tauri-apps/api/core'
 
 /** Commands */
 export const commands = {
+  getOriginalImportStatus: () =>
+    __TAURI_INVOKE<string>('get_original_import_status'),
   getSystemInfo: () => __TAURI_INVOKE<SystemInfo>('get_system_info'),
   /**  获取应用的运行时间（毫秒） */
   getAppUptime: () => __TAURI_INVOKE<number>('get_app_uptime'),

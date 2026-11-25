@@ -38,6 +38,10 @@ export async function getProfiles(): Promise<IProfilesConfig> {
   return commands.getProfiles()
 }
 
+export function getOriginalImportStatus() {
+  return commands.getOriginalImportStatus()
+}
+
 export async function enhanceProfiles() {
   return (await commands.enhanceProfiles()).status === 'valid'
 }

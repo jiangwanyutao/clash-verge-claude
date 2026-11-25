@@ -32,6 +32,34 @@ use tauri_plugin_mihomo::models::{Proxies, ProxyType};
 use tokio::{fs, task::JoinHandle};
 
 pub(crate) static PROFILE_WRITE_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+#[cfg(windows)]
+static ORIGINAL_IMPORT_FAILED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub(crate) fn original_import_status() -> std::string::String {
+    #[cfg(windows)]
+    {
+        if ORIGINAL_IMPORT_FAILED.load(Ordering::Relaxed) {
+            return "error".into();
+        }
+        if let Ok(home) = dirs::app_home_dir()
+            && let Ok(value) = std::fs::read_to_string(home.join(".original-subscriptions-imported"))
+        {
+            return if value.trim() == "0" { "empty" } else { "imported" }.into();
+        }
+        if ::dirs::data_dir().is_none_or(|p| {
+            !p.join("io.github.clash-verge-rev.clash-verge-rev")
+                .join("profiles.yaml")
+                .exists()
+        }) {
+            return "no_source".into();
+        }
+        "error".into()
+    }
+    #[cfg(not(windows))]
+    {
+        "no_source".into()
+    }
+}
 
 static ACTIVATE_SELECTED_TASK: LazyLock<Mutex<Option<JoinHandle<()>>>> = LazyLock::new(|| Mutex::new(None));
 static ACTIVATE_SELECTED_GENERATION: AtomicU64 = AtomicU64::new(0);
@@ -111,6 +139,13 @@ impl IProfiles {
 
         match help::read_yaml::<Self>(&path).await {
             Ok(mut profiles) => {
+                #[cfg(windows)]
+                if let Err(error) = import_original_subscriptions(&mut profiles).await {
+                    if !error.to_string().contains("were not found") {
+                        ORIGINAL_IMPORT_FAILED.store(true, Ordering::Relaxed);
+                    }
+                    logging!(warn, Type::Config, "Original subscription import failed: {error}");
+                }
                 let items = profiles.items.get_or_insert_with(Vec::new);
                 let mut home_changed = false;
                 for item in items.iter_mut() {
@@ -410,6 +445,164 @@ impl IProfiles {
                 .collect()
         })
     }
+}
+
+#[cfg(windows)]
+async fn import_original_subscriptions(profiles: &mut IProfiles) -> Result<()> {
+    let destination = dirs::app_home_dir()?;
+    let source = ::dirs::data_dir()
+        .ok_or_else(|| anyhow::anyhow!("Cannot locate application data"))?
+        .join("io.github.clash-verge-rev.clash-verge-rev");
+    import_original_from(profiles, &source, &destination).await
+}
+
+#[cfg(windows)]
+async fn import_original_from(profiles: &mut IProfiles, source: &Path, destination: &Path) -> Result<()> {
+    let marker = destination.join(".original-subscriptions-imported");
+    if marker.exists() {
+        return Ok(());
+    }
+    let source_index = source.join("profiles.yaml");
+    if !source_index.exists() {
+        anyhow::bail!("Original Clash Verge subscriptions were not found");
+    }
+    let original: IProfiles = help::read_yaml(&source_index)
+        .await
+        .map_err(|_| anyhow::anyhow!("Cannot read original subscription index"))?;
+    let original_items = original.items.unwrap_or_default();
+    let mut candidate = profiles.clone();
+    let items = candidate.items.get_or_insert_with(Vec::new);
+    let mut available = 0;
+    for mut item in original_items {
+        if item.itype.as_deref() != Some("remote") || item.url.is_none() {
+            continue;
+        }
+        available += 1;
+        if items.iter().any(|existing| existing.url == item.url) {
+            continue;
+        }
+        let filename = item
+            .file
+            .as_deref()
+            .ok_or_else(|| anyhow::anyhow!("Original subscription cache is missing"))?;
+        let path = Path::new(filename);
+        anyhow::ensure!(
+            path.components().count() == 1 && matches!(path.components().next(), Some(Component::Normal(_))),
+            "Invalid subscription cache filename"
+        );
+        let uid = help::get_uid("r");
+        let new_filename = format!("{uid}.yaml");
+        fs::copy(
+            source.join("profiles").join(path),
+            destination.join("profiles").join(&new_filename),
+        )
+        .await
+        .map_err(|_| anyhow::anyhow!("Cannot copy original subscription cache"))?;
+        item.uid = Some(uid.into());
+        item.file = Some(new_filename.into());
+        clear_original_overrides(&mut item);
+        items.push(item);
+    }
+    help::save_yaml(
+        &destination.join("profiles.yaml"),
+        &candidate,
+        Some("# Profiles Config for Clash Verge"),
+    )
+    .await
+    .map_err(|_| anyhow::anyhow!("Cannot save imported subscriptions"))?;
+    *profiles = candidate;
+    fs::write(marker, available.to_string())
+        .await
+        .map_err(|_| anyhow::anyhow!("Cannot save import status"))?;
+    Ok(())
+}
+
+#[cfg(all(test, windows))]
+#[tokio::test]
+async fn imports_fixture_once_without_overrides() -> Result<()> {
+    let root = std::env::temp_dir().join(format!("claude-route-fixture-{}", help::get_uid("t")));
+    let source = root.join("source");
+    let target = root.join("target");
+    fs::create_dir_all(source.join("profiles")).await?;
+    fs::create_dir_all(target.join("profiles")).await?;
+    fs::write(source.join("profiles.yaml"), "items:\n  - type: remote\n    name: test\n    url: https://example.com/sub\n    file: a.yaml\n    option:\n      script: old-script\n").await?;
+    fs::write(source.join("profiles/a.yaml"), "proxies: []\n").await?;
+    let mut profiles = IProfiles::default();
+    import_original_from(&mut profiles, &source, &target).await?;
+    let items = profiles.items.as_ref().unwrap();
+    assert_eq!(items.len(), 1);
+    assert!(items[0].option.as_ref().unwrap().script.is_none());
+    assert!(target.join("profiles").join(items[0].file.as_deref().unwrap()).exists());
+    import_original_from(&mut profiles, &source, &target).await?;
+    assert_eq!(profiles.items.as_ref().unwrap().len(), 1);
+    fs::remove_dir_all(root).await?;
+    Ok(())
+}
+
+#[cfg(all(test, windows))]
+#[tokio::test]
+#[ignore = "reads the local original subscription index when explicitly requested"]
+async fn imports_real_original_into_isolated_directory_without_duplicates() -> Result<()> {
+    let source = ::dirs::data_dir()
+        .unwrap()
+        .join("io.github.clash-verge-rev.clash-verge-rev");
+    if !source.join("profiles.yaml").exists() {
+        return Ok(());
+    }
+    let temp = std::env::temp_dir().join(format!("claude-route-import-test-{}", help::get_uid("t")));
+    fs::create_dir_all(temp.join("profiles")).await?;
+    let mut profiles = IProfiles::default();
+    import_original_from(&mut profiles, &source, &temp).await?;
+    let count = profiles.items.as_ref().map_or(0, Vec::len);
+    assert!(count > 0);
+    for item in profiles.items.as_ref().unwrap() {
+        assert!(temp.join("profiles").join(item.file.as_deref().unwrap()).exists());
+        assert!(item.selected.is_none());
+        if let Some(option) = &item.option {
+            assert!(option.script.is_none() && option.merge.is_none() && option.rules.is_none());
+            assert!(option.proxies.is_none() && option.groups.is_none());
+        }
+    }
+    import_original_from(&mut profiles, &source, &temp).await?;
+    assert_eq!(profiles.items.as_ref().unwrap().len(), count);
+    fs::remove_dir_all(&temp).await?;
+    Ok(())
+}
+
+#[cfg(windows)]
+fn clear_original_overrides(item: &mut PrfItem) {
+    item.selected = None;
+    if let Some(option) = &mut item.option {
+        option.merge = None;
+        option.script = None;
+        option.rules = None;
+        option.proxies = None;
+        option.groups = None;
+    }
+}
+
+#[cfg(all(test, windows))]
+#[test]
+fn original_subscription_does_not_import_override_references() {
+    let mut item = PrfItem {
+        selected: Some(vec![Default::default()]),
+        option: Some(PrfOption {
+            script: Some("script".into()),
+            merge: Some("merge".into()),
+            rules: Some("rules".into()),
+            proxies: Some("proxies".into()),
+            groups: Some("groups".into()),
+            update_interval: Some(60),
+            ..Default::default()
+        }),
+        ..Default::default()
+    };
+    clear_original_overrides(&mut item);
+    let option = item.option.unwrap();
+    assert!(item.selected.is_none());
+    assert!(option.script.is_none() && option.merge.is_none() && option.rules.is_none());
+    assert!(option.proxies.is_none() && option.groups.is_none());
+    assert_eq!(option.update_interval, Some(60));
 }
 
 // These helpers serialize asynchronous operations against committed profile data.
