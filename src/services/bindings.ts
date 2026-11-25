@@ -245,6 +245,13 @@ export type ClashInfo = {
   secret: string | null
 }
 
+export type ClaudeRouting = {
+  enabled?: boolean
+  selected_exit?: string
+  configuration?: string
+  exit_names?: string[]
+}
+
 /**  Structured command failure returned to the frontend. */
 export type CommandFailure =
   | CommandFailure_Serialize
@@ -352,6 +359,7 @@ export type IVergeTheme = {
 
 /**  ### `verge.yaml` schema */
 export type IVerge_Deserialize = {
+  claude_routing?: ClaudeRouting | null
   /**  silent | error | warn | info | debug | trace */
   app_log_level?: string | null
   /**  Maximum app log size in KiB. */
@@ -442,6 +450,7 @@ export type IVerge_Deserialize = {
 
 /**  ### `verge.yaml` schema */
 export type IVerge_Serialize = {
+  claude_routing?: ClaudeRouting | null
   /**  silent | error | warn | info | debug | trace */
   app_log_level: string | null
   /**  Maximum app log size in KiB. */

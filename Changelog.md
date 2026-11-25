@@ -19,6 +19,20 @@
        scripts-workflow/group_platforms.sh regroups, --check verifies
      HTML comments are stripped by the update dialog's sanitizer and hidden on
      GitHub, so they never reach users. -->
+## Claude Verge (unreleased)
+
+<details>
+<summary><strong> ✨ 新增功能 </strong></summary>
+
+- 新增 Claude 专用分流开关和出口选择，新增或切换订阅后保留配置
+- 新增运行配置导入，关闭专用分流后跟随当前订阅规则
+
+**🖥️ Windows**
+
+- Windows：新增独立安装与数据目录，可与原版共存，首版暂不支持 TUN
+
+</details>
+
 ## v2.5.10
 
 <details>

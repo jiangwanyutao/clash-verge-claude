@@ -5,6 +5,7 @@ import { useCallback, useEffect, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, BasePage, TooltipIcon } from '@/components/base'
+import { ClaudeRoutingPanel } from '@/components/proxy/claude-routing-panel'
 import { ProviderButton } from '@/components/proxy/provider-button'
 import { ProxyGroups } from '@/components/proxy/proxy-groups'
 import {
@@ -146,7 +147,11 @@ const ProxyPage = () => {
   return (
     <BasePage
       full
-      contentStyle={{ height: '100%' }}
+      contentStyle={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
       title={
         isChainMode ? (
           <Box
@@ -201,12 +206,15 @@ const ProxyPage = () => {
         </Box>
       }
     >
-      <ProxyGroups
-        mode={curMode ?? 'rule'}
-        isChainMode={isChainMode}
-        chainConfigData={chainConfigData}
-        onExitChainMode={onExitChainMode}
-      />
+      <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
+      <Box sx={{ flex: 1, minHeight: 0 }}>
+        <ProxyGroups
+          mode={curMode ?? 'rule'}
+          isChainMode={isChainMode}
+          chainConfigData={chainConfigData}
+          onExitChainMode={onExitChainMode}
+        />
+      </Box>
       <BaseDialog
         open={chainConfirmOpen}
         title={t('proxies.page.actions.toggleChain')}
