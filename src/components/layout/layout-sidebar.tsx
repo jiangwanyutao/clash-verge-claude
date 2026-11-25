@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 
 import iconDark from '@/assets/image/icon_dark.svg?react'
 import iconLight from '@/assets/image/icon_light.svg?react'
-import LogoSvg from '@/assets/image/logo.svg?react'
 import { useVerge } from '@/hooks/use-verge'
 import { useNavMenuOrder } from '@/pages/_layout/hooks'
 import { navItems } from '@/pages/_navigation'
@@ -144,7 +143,13 @@ export const LayoutSidebar = (props: LayoutSidebarProps) => {
             }}
             inheritViewBox
           />
-          <LogoSvg fill={isDark ? 'white' : 'black'} />
+          <Box
+            component="span"
+            title="Claude 分流助手"
+            sx={{ fontWeight: 700, fontSize: 18, whiteSpace: 'nowrap' }}
+          >
+            Claude Route
+          </Box>
         </div>
         <UpdateButton className="the-newbtn" />
       </div>

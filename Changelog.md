@@ -19,17 +19,19 @@
        scripts-workflow/group_platforms.sh regroups, --check verifies
      HTML comments are stripped by the update dialog's sanitizer and hidden on
      GitHub, so they never reach users. -->
-## Claude Verge (unreleased)
+## Claude Route (unreleased)
 
 <details>
 <summary><strong> ✨ 新增功能 </strong></summary>
 
 - 新增 Claude 专用分流开关和出口选择，新增或切换订阅后保留配置
 - 新增运行配置导入，关闭专用分流后跟随当前订阅规则
+- 优化应用名称为「Claude Route」，统一窗口、托盘与安装包名称
 
 **🖥️ Windows**
 
 - Windows：新增独立安装与数据目录，可与原版共存，首版暂不支持 TUN
+- Windows：修复启动时覆盖原版导入协议关联的问题
 
 </details>
 

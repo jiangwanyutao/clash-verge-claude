@@ -1,4 +1,4 @@
-# Claude Verge
+# Claude Route · Claude 分流助手
 
 Independent Windows fork of Clash Verge Rev, with persistent Claude routing.
 
@@ -18,7 +18,7 @@ Do not copy the original app's global `Script.js`: its old Claude rules would re
 
 ## Coexistence
 
-The app installs as **Claude Verge**, with data in `%APPDATA%\io.github.jiangwanyutao.claude-verge`. Its executable, core, startup task and IPC names are separate. The default mixed proxy port is **17897**. It does not migrate or delete the original installation's data.
+The app installs as **Claude Route**, with data in `%APPDATA%\io.github.jiangwanyutao.claude-verge`. The data identifier and `claude-verge://` import protocol are retained across the rename. Its executable, core, startup task and IPC names are separate from the original app. The default mixed proxy port is **17897**. It does not migrate or delete the original installation's data.
 
 This first Windows version runs its own sidecar core. TUN, shared service management, proxy guard and automatic application updates are disabled. Both applications can remain installed and run, but Windows has one system-proxy setting: enable system proxy in only the application you intend to use. The original app's TUN or proxy guard can still affect traffic if left enabled.
 

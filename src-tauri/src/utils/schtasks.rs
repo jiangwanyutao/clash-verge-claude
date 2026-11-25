@@ -8,8 +8,8 @@ use std::process::{Command, Output};
 use windows::Win32::Globalization::{GetACP, GetOEMCP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS, MultiByteToWideChar};
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
-const TASK_NAME_USER: &str = "Claude Verge";
-const TASK_NAME_ADMIN: &str = "Claude Verge (Admin)";
+const TASK_NAME_USER: &str = "Claude Route";
+const TASK_NAME_ADMIN: &str = "Claude Route (Admin)";
 const TASK_XML_DIR: &str = "tasks";
 const TASK_XML_USER: &str = "claude-verge-task-user.xml";
 const TASK_XML_ADMIN: &str = "claude-verge-task-admin.xml";
@@ -97,8 +97,8 @@ fn get_startup_dir() -> Result<PathBuf> {
 
 async fn cleanup_legacy_shortcuts() -> Result<()> {
     let startup_dir = get_startup_dir()?;
-    let old_shortcut = startup_dir.join("Claude-Verge.lnk");
-    let new_shortcut = startup_dir.join("Claude Verge.lnk");
+    let old_shortcut = startup_dir.join("Claude-Route.lnk");
+    let new_shortcut = startup_dir.join("Claude Route.lnk");
 
     old_shortcut
         .remove_if_exists()
