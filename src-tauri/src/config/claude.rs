@@ -104,6 +104,65 @@ fn rewrite_list(item: &mut Mapping, key: &str) -> Result<()> {
     Ok(())
 }
 
+fn validate_protected_outbound(name: &str, endpoints: &Endpoints, visited: &mut HashSet<String>) -> Result<()> {
+    ensure!(name != "DIRECT", "Protected traffic cannot use DIRECT");
+    if name == "REJECT" {
+        return Ok(());
+    }
+    ensure!(visited.insert(name.to_owned()), "Protected outbound contains a cycle");
+    if let Some(node) = endpoints
+        .proxies
+        .iter()
+        .find(|node| node.get("name").and_then(Value::as_str) == Some(name))
+    {
+        ensure!(
+            matches!(
+                node.get("type").and_then(Value::as_str),
+                Some(
+                    "http"
+                        | "socks5"
+                        | "ss"
+                        | "ssr"
+                        | "vmess"
+                        | "vless"
+                        | "trojan"
+                        | "hysteria"
+                        | "hysteria2"
+                        | "tuic"
+                        | "wireguard"
+                        | "ssh"
+                        | "snell"
+                        | "mieru"
+                )
+            ),
+            "Protected traffic requires a supported static proxy node"
+        );
+        if let Some(dialer) = node.get("dialer-proxy").and_then(Value::as_str) {
+            validate_protected_outbound(dialer, endpoints, visited)?;
+        }
+    } else if let Some(group) = endpoints
+        .groups
+        .iter()
+        .find(|group| group.get("name").and_then(Value::as_str) == Some(name))
+    {
+        ensure!(
+            group.get("type").and_then(Value::as_str) == Some("select"),
+            "Protected exits cannot automatically switch nodes"
+        );
+        ensure!(
+            strings(group, "use")?.is_empty(),
+            "Protected exits require a specific static node; dynamic providers are not supported yet"
+        );
+        let members = strings(group, "proxies")?;
+        ensure!(members.len() == 1, "Protected exits require exactly one static node");
+        validate_protected_outbound(members[0], endpoints, visited)?;
+    } else {
+        bail!("Protected exit is not a defined static node");
+    }
+    visited.remove(name);
+    Ok(())
+}
+
 impl ClaudeRouting {
     fn endpoints(&self) -> Result<Endpoints> {
         // Parser diagnostics can include a credential-bearing line from the YAML input.
@@ -210,6 +269,9 @@ impl ClaudeRouting {
             self.exit_names.contains(&self.selected_exit),
             "Select a configured Claude exit"
         );
+        if self.enabled {
+            validate_protected_outbound(&self.selected_exit, &endpoints, &mut HashSet::new())?;
+        }
         Ok(())
     }
 
@@ -217,7 +279,17 @@ impl ClaudeRouting {
         if !self.enabled {
             return Ok(config);
         }
-        self.validate()?;
+        if self.validate().is_err() {
+            let mut rules: Vec<Value> = claude_rules()
+                .into_iter()
+                .filter_map(|rule| rule.as_str().map(|text| text.replace(GROUP, "REJECT").into()))
+                .collect();
+            if let Some(existing) = config.get("rules").and_then(Value::as_sequence) {
+                rules.extend(existing.iter().cloned());
+            }
+            config.insert("rules".into(), Value::Sequence(rules));
+            return Ok(config);
+        }
         let mut endpoints = self.endpoints()?;
         // Subscription extensions run first, but cannot claim our persisted control names.
         for key in ["proxies", "proxy-groups"] {
@@ -332,7 +404,7 @@ mod tests {
     use super::*;
 
     fn routing() -> ClaudeRouting {
-        ClaudeRouting { enabled: true, selected_exit: "US".into(), exit_names: vec!["US".into(), "Static".into()], configuration: "proxies:\n  - {name: Static, type: http, server: example.com, port: 8080}\nproxy-providers:\n  VPS: {type: http, url: 'https://example.com/sub', path: '../../unsafe.yaml'}\nproxy-groups:\n  - {name: US, type: select, use: [VPS]}\n".into() }
+        ClaudeRouting { enabled: true, selected_exit: "US".into(), exit_names: vec!["US".into(), "Static".into()], configuration: "proxies:\n  - {name: Static, type: http, server: example.com, port: 8080}\nproxy-providers:\n  VPS: {type: http, url: 'https://example.com/sub', path: '../../unsafe.yaml'}\nproxy-groups:\n  - {name: US, type: select, proxies: [Static]}\n".into() }
     }
 
     #[test]
@@ -369,7 +441,7 @@ mod tests {
         settings.configuration.push_str("mixed-port: 7897\n");
         assert!(settings.validate().is_err());
         settings = routing();
-        settings.configuration = settings.configuration.replace("use: [VPS]", "use: [Missing]");
+        settings.configuration = settings.configuration.replace("proxies: [Static]", "use: [Missing]");
         assert!(settings.validate().is_err());
         settings = routing();
         settings.configuration = settings.configuration.replace("name: Static", "name: US");
@@ -413,8 +485,11 @@ mod tests {
         settings.selected_exit = "DIRECT".into();
         assert!(settings.validate().is_err());
         settings.exit_names.push("DIRECT".into());
-        let generated = settings.apply(Mapping::new())?;
-        assert_eq!(generated["proxy-groups"][0]["proxies"][0].as_str(), Some("DIRECT"));
+        assert!(settings.validate().is_err());
+        assert_eq!(
+            settings.apply(Mapping::new())?["rules"][0].as_str(),
+            Some("DOMAIN-SUFFIX,claude.ai,REJECT")
+        );
 
         settings = routing();
         settings.configuration = settings.configuration.replace(
@@ -447,5 +522,22 @@ mod tests {
             .push_str("script: {code: 'function main() {}'}\n");
         assert!(settings.validate().is_err());
         Ok(())
+    }
+
+    #[test]
+    fn protected_exits_reject_direct_switching_and_dynamic_providers() {
+        let original = routing();
+        for (from, to) in [
+            ("proxies: [Static]", "proxies: [DIRECT]"),
+            ("type: select, proxies: [Static]", "type: fallback, proxies: [Static]"),
+            ("proxies: [Static]", "proxies: [Static, REJECT]"),
+            ("proxies: [Static]", "use: [VPS]"),
+        ] {
+            let mut candidate = original.clone();
+            candidate.configuration = candidate.configuration.replace(from, to);
+            assert!(candidate.validate().is_err());
+            candidate.enabled = false;
+            assert!(candidate.validate().is_ok());
+        }
     }
 }

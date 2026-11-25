@@ -14,6 +14,16 @@ pub async fn patch_clash(patch: &Mapping) -> Result<()> {
         "Claude Verge currently supports sidecar mode only; TUN is unavailable"
     );
     let config_write = Config::try_lock_config_write()?;
+    if Config::verge()
+        .await
+        .latest_arc()
+        .claude_routing
+        .as_ref()
+        .is_some_and(|r| r.enabled)
+        && let Some(mode) = patch.get("mode")
+    {
+        ensure_rule_mode(mode.as_str())?;
+    }
     super::executor::apply(
         &config_write,
         super::executor::Patch::Clash(patch),
@@ -56,6 +66,11 @@ pub(super) async fn apply_verge_patch_locked(
     );
     if let Some(routing) = &patch.claude_routing {
         routing.validate()?;
+        if routing.enabled {
+            let clash = Config::clash().await;
+            let mode = clash.latest_arc().get_mode();
+            ensure_rule_mode(mode.as_deref())?;
+        }
     }
     super::executor::apply(
         _config_write,
@@ -66,6 +81,26 @@ pub(super) async fn apply_verge_patch_locked(
         super::effects::verge_effects(patch),
     )
     .await
+}
+
+pub(super) fn ensure_rule_mode(mode: Option<&str>) -> Result<()> {
+    anyhow::ensure!(
+        mode.is_some_and(|mode| mode.eq_ignore_ascii_case("rule")),
+        "专用分流启用时必须使用规则模式"
+    );
+    Ok(())
+}
+
+#[cfg(test)]
+mod mode_guard_tests {
+    #[test]
+    fn dedicated_routing_requires_rule_mode() {
+        assert!(super::ensure_rule_mode(Some("rule")).is_ok());
+        assert!(super::ensure_rule_mode(Some("Rule")).is_ok());
+        assert!(super::ensure_rule_mode(Some("global")).is_err());
+        assert!(super::ensure_rule_mode(Some("direct")).is_err());
+        assert!(super::ensure_rule_mode(None).is_err());
+    }
 }
 
 pub async fn fetch_verge_config() -> Result<SharedDraft<IVerge>> {

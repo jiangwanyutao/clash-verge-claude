@@ -965,6 +965,21 @@ pub async fn enhance(
 
     notify_discarded_keys(authoritative.overridden(&authoritative, &authoritative.current(&config)));
     let config = authoritative.enforce(config);
+    if Config::verge()
+        .await
+        .latest_arc()
+        .claude_routing
+        .as_ref()
+        .is_some_and(|r| r.enabled)
+    {
+        anyhow::ensure!(
+            config
+                .get("mode")
+                .and_then(Value::as_str)
+                .is_some_and(|mode| mode.eq_ignore_ascii_case("rule")),
+            "专用分流启用时必须使用规则模式"
+        );
+    }
     // The isolated build must keep TUN off even after imported profiles and scripts.
     let config = use_tun(config, false);
     let config = ensure_lan_bind_address(config);

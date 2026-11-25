@@ -127,7 +127,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
         >
           {routing.exit_names.map((name) => (
             <MenuItem key={name} value={name}>
-              {name === 'DIRECT' ? '完全直连（不经过代理）' : name}
+              {name}
             </MenuItem>
           ))}
         </TextField>
@@ -137,11 +137,14 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         {routing.enabled
-          ? '专用分流已开启，新增或切换订阅后继续使用这里选择的出口。'
+          ? '保护已开启；若所选出口不符合要求或不可用，专用请求将被阻断。请选择符合要求的固定节点以恢复连接。'
           : '专用分流已关闭，Claude 跟随当前订阅规则。出口配置仍然保留。'}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         仅对经过本软件的流量生效；请设置应用代理或开启本软件系统代理。
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        开启专用分流并使用规则模式时，所选节点不可用会阻断专用请求，不自动直连或切换出口。
       </Typography>
       {routing.enabled && mode !== 'rule' && (
         <Alert severity="warning" sx={{ mt: 1 }}>
@@ -166,9 +169,9 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
       >
         <Stack spacing={2} sx={{ pt: 1 }}>
           <Typography variant="body2">
-            可导入原版运行配置中的 Claude
-            代理组，或粘贴仅包含节点、代理组和代理集合的
-            YAML。密码和订阅地址只保存在本机，请勿公开分享。
+            可导入原版运行配置中的 Claude 代理组，或粘贴出口
+            YAML。专用出口须为固定节点，暂不支持由代理集合提供的动态节点、直连或自动切换组。
+            密码和订阅地址只保存在本机，请勿公开分享。
           </Typography>
           <input
             ref={fileRef}
@@ -218,7 +221,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
           </Button>
           <TextField
             label="可选出口名称（每行一个）"
-            helperText="填写上述节点或代理组的名称。DIRECT 表示完全直连，不是跟随机场规则。"
+            helperText="填写上述固定节点或单节点代理组的名称，每行一个。"
             multiline
             minRows={2}
             value={exits}
