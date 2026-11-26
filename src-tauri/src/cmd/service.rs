@@ -84,12 +84,18 @@ where
 #[tauri::command]
 #[specta::specta]
 pub async fn install_service() -> CmdResult<ServiceInstallOutcome> {
+    #[cfg(target_os = "macos")]
+    return Err("Claude Route uses its own sidecar; service installation is disabled".into());
+    #[cfg(not(target_os = "macos"))]
     execute_service_operation_sync(ServiceStatus::InstallRequired, "SERVICE_INSTALL_FAILED").await
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn uninstall_service() -> CmdResult {
+    #[cfg(target_os = "macos")]
+    return Err("Claude Route does not manage the original service".into());
+    #[cfg(not(target_os = "macos"))]
     CoreManager::global()
         .uninstall_service_and_start_sidecar()
         .await
@@ -99,12 +105,18 @@ pub async fn uninstall_service() -> CmdResult {
 #[tauri::command]
 #[specta::specta]
 pub async fn reinstall_service() -> CmdResult<ServiceInstallOutcome> {
+    #[cfg(target_os = "macos")]
+    return Err("Claude Route does not manage the original service".into());
+    #[cfg(not(target_os = "macos"))]
     execute_service_operation_sync(ServiceStatus::ReinstallRequired, "SERVICE_REINSTALL_FAILED").await
 }
 
 #[tauri::command]
 #[specta::specta]
 pub async fn repair_service() -> CmdResult<ServiceInstallOutcome> {
+    #[cfg(target_os = "macos")]
+    return Err("Claude Route does not manage the original service".into());
+    #[cfg(not(target_os = "macos"))]
     execute_service_operation_sync(ServiceStatus::ForceReinstallRequired, "SERVICE_REPAIR_FAILED").await
 }
 
