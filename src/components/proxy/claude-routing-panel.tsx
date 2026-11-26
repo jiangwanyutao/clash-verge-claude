@@ -104,12 +104,20 @@ export function ClaudeRoutingPanel({
   }
 
   return (
-    <Box sx={{ p: 2, flexShrink: 0, borderBottom: 1, borderColor: 'divider' }}>
+    <Box
+      sx={{
+        px: 2,
+        py: 1.5,
+        flexShrink: 0,
+        borderBottom: 1,
+        borderColor: 'divider',
+      }}
+    >
       <Stack
         direction="row"
-        spacing={2}
+        spacing={1.5}
         useFlexGap
-        sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+        sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}
       >
         <FormControlLabel
           label={`${service} 专用分流`}
@@ -133,7 +141,7 @@ export function ClaudeRoutingPanel({
               : ''
           }
           disabled={busy || !routing.exit_names.length}
-          sx={{ minWidth: 180 }}
+          sx={{ flex: '1 1 180px', minWidth: 0, maxWidth: 300 }}
           onChange={(event) => {
             void save({ ...routing, selected_exit: event.target.value })
           }}
@@ -149,16 +157,29 @@ export function ClaudeRoutingPanel({
         </Button>
       </Stack>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        {routing.enabled
-          ? '保护已开启；若所选出口不符合要求或不可用，专用请求将被阻断。请选择符合要求的固定节点以恢复连接。'
-          : `专用分流已关闭，${service} 跟随当前订阅规则。出口配置仍然保留。`}
+        {!routing.exit_names.length
+          ? '尚未配置出口，请先选择“配置出口”。'
+          : routing.enabled
+            ? '保护已开启；出口不可用时，专用请求将被阻断。'
+            : `专用分流已关闭，${service} 跟随当前订阅规则。出口配置仍然保留。`}
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        仅对经过本软件的流量生效；请设置应用代理或开启本软件系统代理。
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        开启专用分流并使用规则模式时，所选节点不可用会阻断专用请求，不自动直连或切换出口。
-      </Typography>
+      <Box
+        component="details"
+        sx={{ mt: 0.5, color: 'text.secondary', typography: 'body2' }}
+      >
+        <Box
+          component="summary"
+          sx={{ cursor: 'pointer', width: 'fit-content' }}
+        >
+          查看分流说明
+        </Box>
+        <Typography variant="body2" sx={{ mt: 0.5 }}>
+          仅对经过本软件的流量生效；请设置应用代理或开启本软件系统代理。
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 0.5 }}>
+          开启专用分流并使用规则模式时，所选节点不可用会阻断专用请求，不自动直连或切换出口。请选择符合要求的固定节点以恢复连接。
+        </Typography>
+      </Box>
       {routing.enabled && mode !== 'rule' && (
         <Alert severity="warning" sx={{ mt: 1 }}>
           当前不是规则模式，{service} 专用分流不会按规则生效。请先切换到“规则”。
