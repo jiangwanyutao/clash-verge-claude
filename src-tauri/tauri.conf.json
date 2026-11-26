@@ -1,5 +1,5 @@
 {
-  "version": "2.5.10",
+  "version": "2.5.11",
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "bundle": {
     "active": true,
@@ -18,7 +18,7 @@
     "copyright": "GNU General Public License v3.0",
     "category": "DeveloperTool",
     "shortDescription": "Claude Route - Claude 分流助手",
-    "createUpdaterArtifacts": false
+    "createUpdaterArtifacts": true
   },
   "build": {
     "beforeBuildCommand": "pnpm run web:build",
@@ -31,6 +31,10 @@
   "mainBinaryName": "claude-route",
   "identifier": "io.github.jiangwanyutao.claude-verge",
   "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDg4MDg3QzA5MERBOTJFMDMKUldRRExxa05DWHdJaU5PMy9MWFVTVndJVU15cDZKL0hYbGQ3WnRwRktqY3RKMHVvTjhjWW0ydzEK",
+      "endpoints": ["https://github.com/jiangwanyutao/clash-verge-claude/releases/download/claude-route-updater/latest.json"]
+    },
     "deep-link": {
       "desktop": {
         "schemes": ["claude-verge"]

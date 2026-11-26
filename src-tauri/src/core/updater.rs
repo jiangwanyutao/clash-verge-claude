@@ -687,7 +687,15 @@ impl SilentUpdater {
         Ok(())
     }
 
-    pub fn start_background_check(&self, _app_handle: tauri::AppHandle) {
-        // Updates require a separately signed fork release channel.
+    pub fn start_background_check(&self, app_handle: tauri::AppHandle) {
+        tauri::async_runtime::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            loop {
+                if let Err(error) = Self::global().check_and_download(&app_handle).await {
+                    logging!(warn, Type::System, "Update check failed: {error}");
+                }
+                tokio::time::sleep(std::time::Duration::from_secs(24 * 60 * 60)).await;
+            }
+        });
     }
 }

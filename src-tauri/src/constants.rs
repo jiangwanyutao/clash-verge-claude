@@ -81,4 +81,4 @@ pub mod tun {
     ];
 }
 /// No upstream installer may replace the independently installed fork.
-pub const FORK_UPDATES_ENABLED: bool = false;
+pub const FORK_UPDATES_ENABLED: bool = true;

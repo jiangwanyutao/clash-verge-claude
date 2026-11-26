@@ -336,13 +336,14 @@ impl IVerge {
     }
 
     pub async fn new() -> Self {
-        match dirs::verge_path() {
+        let mut can_migrate = false;
+        let mut config = match dirs::verge_path() {
             Ok(path) => match help::read_yaml::<Self>(&path).await {
                 Ok(mut config) => {
+                    can_migrate = true;
                     // Imported preferences cannot enable unsupported coexistence features.
                     config.enable_tun_mode = Some(false);
                     config.enable_proxy_guard = Some(false);
-                    config.auto_check_update = Some(false);
                     if let Some(start_page) = config.start_page.clone()
                         && start_page == "/home"
                     {
@@ -351,6 +352,7 @@ impl IVerge {
                     config
                 }
                 Err(err) => {
+                    can_migrate = !path.exists();
                     logging!(error, Type::Config, "failed to read verge config: {err:#}");
                     Self::template()
                 }
@@ -359,7 +361,20 @@ impl IVerge {
                 logging!(error, Type::Config, "failed to get verge config path: {err:#}");
                 Self::template()
             }
+        };
+        // Previous fork versions forcibly disabled updates, so migrate that setting once.
+        if can_migrate && let Ok(home) = dirs::app_home_dir() {
+            let marker = home.join("github-updates-initialized");
+            if !marker.exists() {
+                config.auto_check_update = Some(true);
+                if let Err(error) = config.save_file().await {
+                    log::warn!("Failed to save update preference: {error}");
+                } else if let Err(error) = tokio::fs::write(marker, b"1").await {
+                    log::warn!("Failed to save update migration marker: {error}");
+                }
+            }
         }
+        config
     }
 
     pub fn template() -> Self {
@@ -413,7 +428,7 @@ impl IVerge {
             use_default_bypass: Some(true),
             proxy_guard_duration: Some(30),
             auto_close_connection: Some(true),
-            auto_check_update: Some(false),
+            auto_check_update: Some(true),
             enable_builtin_enhanced: Some(true),
             auto_log_clean: Some(2), // 1: 1天, 2: 7天, 3: 30天, 4: 90天
             enable_auto_backup_schedule: Some(false),

@@ -23,7 +23,11 @@ The app installs as **Claude Route**, with data in `%APPDATA%\io.github.jiangwan
 
 Subscription import is a one-time copy, not continuous synchronization; subsequent edits and updates are independent. Original scripts, overrides and selected nodes are not imported. If the original installation cannot be read, the subscription page reports the problem and the next startup retries.
 
-This first Windows version runs its own sidecar core. TUN, shared service management, proxy guard and automatic application updates are disabled. Both applications can remain installed and run, but Windows has one system-proxy setting: enable system proxy in only the application you intend to use. The original app's TUN or proxy guard can still affect traffic if left enabled.
+This fork runs its own sidecar core. TUN, shared service management and proxy guard are disabled. Both applications can remain installed and run, but Windows has one system-proxy setting: enable system proxy in only the application you intend to use. The original app's TUN or proxy guard can still affect traffic if left enabled.
+
+## GitHub updates
+
+Starting with 2.5.11, Claude Route checks its own GitHub Releases update channel and verifies each update with the fork's signing key. Install 2.5.11 manually once when upgrading from 2.5.10, which cannot update itself. Updates can be disabled in settings. The application identifier and local configuration directory remain unchanged. macOS builds are not Apple-notarized.
 
 ## Development
 
