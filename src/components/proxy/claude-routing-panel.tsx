@@ -20,13 +20,21 @@ import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
 
 type Routing = Required<NonNullable<IVergeConfig['claude_routing']>>
 
-export function ClaudeRoutingPanel({ mode }: { mode: string }) {
+export function ClaudeRoutingPanel({
+  mode,
+  service = 'Claude',
+}: {
+  mode: string
+  service?: 'Claude' | 'Codex'
+}) {
   const { verge, patchVerge } = useVerge()
+  const current =
+    service === 'Claude' ? verge?.claude_routing : verge?.codex_routing
   const routing: Routing = {
-    enabled: verge?.claude_routing?.enabled ?? false,
-    selected_exit: verge?.claude_routing?.selected_exit ?? '',
-    configuration: verge?.claude_routing?.configuration ?? '',
-    exit_names: verge?.claude_routing?.exit_names ?? [],
+    enabled: current?.enabled ?? false,
+    selected_exit: current?.selected_exit ?? '',
+    configuration: current?.configuration ?? '',
+    exit_names: current?.exit_names ?? [],
   }
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -39,7 +47,11 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
   const save = useLockFn(async (next: Routing) => {
     setBusy(true)
     try {
-      await patchVerge({ claude_routing: next })
+      await patchVerge(
+        service === 'Claude'
+          ? { claude_routing: next }
+          : { codex_routing: next },
+      )
       return true
     } catch (failure) {
       showNotice.error(failure)
@@ -58,7 +70,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
 
   const importText = (source: string) => {
     try {
-      const imported = importClaudeRouting(source)
+      const imported = importClaudeRouting(source, service)
       setConfiguration(imported.configuration)
       setExits(imported.exit_names.join('\n'))
       setError('')
@@ -100,7 +112,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
         sx={{ alignItems: 'center', flexWrap: 'wrap' }}
       >
         <FormControlLabel
-          label="Claude 专用分流"
+          label={`${service} 专用分流`}
           control={
             <Switch
               checked={routing.enabled}
@@ -139,7 +151,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         {routing.enabled
           ? '保护已开启；若所选出口不符合要求或不可用，专用请求将被阻断。请选择符合要求的固定节点以恢复连接。'
-          : '专用分流已关闭，Claude 跟随当前订阅规则。出口配置仍然保留。'}
+          : `专用分流已关闭，${service} 跟随当前订阅规则。出口配置仍然保留。`}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         仅对经过本软件的流量生效；请设置应用代理或开启本软件系统代理。
@@ -149,12 +161,12 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
       </Typography>
       {routing.enabled && mode !== 'rule' && (
         <Alert severity="warning" sx={{ mt: 1 }}>
-          当前不是规则模式，Claude 专用分流不会按规则生效。请先切换到“规则”。
+          当前不是规则模式，{service} 专用分流不会按规则生效。请先切换到“规则”。
         </Alert>
       )}
       <BaseDialog
         open={open}
-        title="Claude 出口配置"
+        title={`${service} 出口配置`}
         okBtn="保存配置"
         cancelBtn="取消"
         loading={busy}
@@ -170,7 +182,7 @@ export function ClaudeRoutingPanel({ mode }: { mode: string }) {
       >
         <Stack spacing={2} sx={{ pt: 1 }}>
           <Typography variant="body2">
-            可导入原版运行配置中的 Claude 代理组，或粘贴出口
+            可导入原版运行配置中的 {service} 代理组，或粘贴出口
             YAML。专用出口须为固定节点，暂不支持由代理集合提供的动态节点、直连或自动切换组。
             密码和订阅地址只保存在本机，请勿公开分享。
           </Typography>

@@ -51,7 +51,7 @@ export function addSnapshotNodes(configuration: string, source: string) {
   }
 }
 
-export function importClaudeRouting(source: string) {
+export function importClaudeRouting(source: string, service = 'Claude') {
   let document: unknown
   try {
     document = load(source)
@@ -73,7 +73,7 @@ export function importClaudeRouting(source: string) {
     throw new Error('节点或代理组名称重复，请先重命名。')
   }
 
-  const root = groups.find((group) => group.name === 'Claude')
+  const root = groups.find((group) => group.name === service)
   const exitNames = root
     ? names(root.proxies)
     : outboundEntries.map((item) => item.name as string)
@@ -83,7 +83,7 @@ export function importClaudeRouting(source: string) {
 
   const usedOutbounds = new Set<string>()
   const usedProviders = new Set<string>()
-  const visiting = new Set<string>(root ? ['Claude'] : [])
+  const visiting = new Set<string>(root ? [service] : [])
   const visitOutbound = (name: string) => {
     if (name === 'DIRECT' || name === 'REJECT') return
     if (visiting.has(name)) throw new Error('出口配置包含循环引用。')

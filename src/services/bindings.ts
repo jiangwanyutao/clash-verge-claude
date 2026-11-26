@@ -362,6 +362,7 @@ export type IVergeTheme = {
 /**  ### `verge.yaml` schema */
 export type IVerge_Deserialize = {
   claude_routing?: ClaudeRouting | null
+  codex_routing?: ClaudeRouting | null
   /**  silent | error | warn | info | debug | trace */
   app_log_level?: string | null
   /**  Maximum app log size in KiB. */
@@ -453,6 +454,7 @@ export type IVerge_Deserialize = {
 /**  ### `verge.yaml` schema */
 export type IVerge_Serialize = {
   claude_routing?: ClaudeRouting | null
+  codex_routing?: ClaudeRouting | null
   /**  silent | error | warn | info | debug | trace */
   app_log_level: string | null
   /**  Maximum app log size in KiB. */

@@ -16,6 +16,8 @@ use smartstring::alias::String;
 pub struct IVerge {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub claude_routing: Option<super::ClaudeRouting>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub codex_routing: Option<super::ClaudeRouting>,
 
     /// silent | error | warn | info | debug | trace
     #[specta(type = Option<std::string::String>)]
@@ -450,6 +452,7 @@ impl IVerge {
 
         patch!(app_log_level);
         patch!(claude_routing);
+        patch!(codex_routing);
         patch!(app_log_max_size);
         patch!(app_log_max_count);
 

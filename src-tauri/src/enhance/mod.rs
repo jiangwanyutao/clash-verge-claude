@@ -957,20 +957,22 @@ pub async fn enhance(
     )
     .await;
 
-    let config = if let Some(routing) = &Config::verge().await.latest_arc().claude_routing {
+    let verge = Config::verge().await.latest_arc();
+    let config = if let Some(routing) = &verge.claude_routing {
         routing.apply(config)?
     } else {
         config
     };
 
+    let config = if let Some(routing) = &verge.codex_routing {
+        routing.apply_codex(config)?
+    } else {
+        config
+    };
     notify_discarded_keys(authoritative.overridden(&authoritative, &authoritative.current(&config)));
     let config = authoritative.enforce(config);
-    if Config::verge()
-        .await
-        .latest_arc()
-        .claude_routing
-        .as_ref()
-        .is_some_and(|r| r.enabled)
+    if verge.claude_routing.as_ref().is_some_and(|r| r.enabled)
+        || verge.codex_routing.as_ref().is_some_and(|r| r.enabled)
     {
         anyhow::ensure!(
             config

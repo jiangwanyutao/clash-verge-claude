@@ -47,6 +47,7 @@ macro_rules! verge_registry {
 
 verge_registry! {
     claude_routing => [ClashConfig];
+    codex_routing => [ClashConfig];
     app_log_level => [LogLevel];
     app_log_max_size => [LogFile];
     app_log_max_count => [LogFile];

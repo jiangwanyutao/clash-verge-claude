@@ -93,12 +93,9 @@ fn after_change_clash_mode() {
 /// Propagates mihomo PATCH failures so the frontend can roll back its optimistic mode.
 pub async fn change_clash_mode(mode: String) -> Result<(), String> {
     let _config_write = Config::lock_config_write().await;
-    if Config::verge()
-        .await
-        .latest_arc()
-        .claude_routing
-        .as_ref()
-        .is_some_and(|r| r.enabled)
+    let verge = Config::verge().await.latest_arc();
+    if verge.claude_routing.as_ref().is_some_and(|r| r.enabled)
+        || verge.codex_routing.as_ref().is_some_and(|r| r.enabled)
     {
         super::config::ensure_rule_mode(Some(mode.as_str())).map_err(|error| error.to_string())?;
     }

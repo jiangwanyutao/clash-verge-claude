@@ -14,12 +14,9 @@ pub async fn patch_clash(patch: &Mapping) -> Result<()> {
         "Claude Verge currently supports sidecar mode only; TUN is unavailable"
     );
     let config_write = Config::try_lock_config_write()?;
-    if Config::verge()
-        .await
-        .latest_arc()
-        .claude_routing
-        .as_ref()
-        .is_some_and(|r| r.enabled)
+    let verge = Config::verge().await.latest_arc();
+    if (verge.claude_routing.as_ref().is_some_and(|r| r.enabled)
+        || verge.codex_routing.as_ref().is_some_and(|r| r.enabled))
         && let Some(mode) = patch.get("mode")
     {
         ensure_rule_mode(mode.as_str())?;
@@ -64,7 +61,7 @@ pub(super) async fn apply_verge_patch_locked(
         patch.enable_proxy_guard != Some(true),
         "Proxy guard is unavailable in the coexistence build"
     );
-    if let Some(routing) = &patch.claude_routing {
+    for routing in [&patch.claude_routing, &patch.codex_routing].into_iter().flatten() {
         routing.validate()?;
         if routing.enabled {
             let clash = Config::clash().await;

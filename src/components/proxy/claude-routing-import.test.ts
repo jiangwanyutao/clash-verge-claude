@@ -3,6 +3,19 @@ import { expect, it } from 'vitest'
 
 import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
 
+it('imports the selected service group independently', () => {
+  const source = `
+proxies:
+  - {name: ClaudeNode, type: http}
+  - {name: CodexNode, type: http}
+proxy-groups:
+  - {name: Claude, type: select, proxies: [ClaudeNode]}
+  - {name: Codex, type: select, proxies: [CodexNode]}
+`
+  expect(importClaudeRouting(source).exit_names).toEqual(['ClaudeNode'])
+  expect(importClaudeRouting(source, 'Codex').exit_names).toEqual(['CodexNode'])
+})
+
 it('adds fixed nodes from a subscription cache without replacing configured exits', () => {
   const result = addSnapshotNodes(
     'proxies: [{name: Old, type: http}]\nproxy-groups: [{name: Existing, type: select, proxies: [Old]}]',

@@ -1,8 +1,9 @@
 # Claude Route · Claude 分流助手
 
-Independent Windows fork of Clash Verge Rev, with persistent Claude routing.
+Independent Clash Verge Rev fork with persistent Claude and Codex routing.
 
 - In **Proxies → Claude 专用分流**, configure your exits once, then select an exit and enable the switch. New and switched subscriptions keep this selection.
+- **Codex 专用分流** has its own switch and fixed exit. It uses a separate, versioned OpenAI domain snapshot; the two services can use different exits. Some rules cover shared third-party domains and may also match other apps using them.
 - Turn the switch off to follow the current subscription's rules. This does **not** force `DIRECT`.
 - Use **Rule** mode. Global and Direct modes bypass the dedicated rules.
 - The bundled domain/IP rules are a versioned CleanIP snapshot reviewed on November 25, 2026; they do not update automatically.
@@ -26,7 +27,7 @@ This first Windows version runs its own sidecar core. TUN, shared service manage
 
 ## Development
 
-Use the Rust toolchain in `rust-toolchain.toml` and the pnpm version in `package.json`. Run `pnpm install --frozen-lockfile`, `pnpm prebuild`, `pnpm gen:contract`, and `pnpm build`. Windows is the supported target of this fork; macOS/Linux packages have not been adapted or verified.
+Use the Rust toolchain in `rust-toolchain.toml` and the pnpm version in `package.json`. Run `pnpm install --frozen-lockfile`, `pnpm prebuild`, `pnpm gen:contract`, and `pnpm build`. Windows x64 and macOS Apple Silicon beta packages are available; Linux and Intel macOS have not been verified for this fork.
 
 Original project information and GPL licensing follow below.
 

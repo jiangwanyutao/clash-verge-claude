@@ -41,7 +41,9 @@ fn name(item: &Mapping) -> Result<&str> {
         "Claude endpoint names must contain 1–120 bytes"
     );
     ensure!(
-        !matches!(name, "DIRECT" | "REJECT" | "GLOBAL" | GROUP) && !name.starts_with(PREFIX),
+        !matches!(name, "DIRECT" | "REJECT" | "GLOBAL" | GROUP | "Codex-Verge")
+            && !name.starts_with(PREFIX)
+            && !name.starts_with("Codex-Verge:"),
         "Reserved Claude endpoint name"
     );
     Ok(name)
@@ -51,11 +53,11 @@ fn builtin(name: &str) -> bool {
     matches!(name, "DIRECT" | "REJECT")
 }
 
-fn outbound(name: &str) -> String {
+fn outbound(name: &str, prefix: &str) -> String {
     if builtin(name) {
         name.to_owned()
     } else {
-        format!("{PREFIX}{name}")
+        format!("{prefix}{name}")
     }
 }
 
@@ -87,17 +89,17 @@ fn check_reference(item: &Mapping, key: &str, names: &HashSet<&str>) -> Result<(
     Ok(())
 }
 
-fn rewrite_reference(item: &mut Mapping, key: &str) {
+fn rewrite_reference(item: &mut Mapping, key: &str, prefix: &str) {
     if let Some(reference) = item.get(key).and_then(Value::as_str) {
-        item.insert(key.into(), outbound(reference).into());
+        item.insert(key.into(), outbound(reference, prefix).into());
     }
 }
 
-fn rewrite_list(item: &mut Mapping, key: &str) -> Result<()> {
+fn rewrite_list(item: &mut Mapping, key: &str, prefix: &str) -> Result<()> {
     if item.contains_key(key) {
         let values = strings(item, key)?
             .into_iter()
-            .map(|v| Value::String(outbound(v)))
+            .map(|v| Value::String(outbound(v, prefix)))
             .collect();
         item.insert(key.into(), Value::Sequence(values));
     }
@@ -191,7 +193,8 @@ impl ClaudeRouting {
                 !provider_name.trim().is_empty()
                     && provider_name.len() <= 120
                     && !builtin(provider_name)
-                    && !provider_name.starts_with(PREFIX),
+                    && !provider_name.starts_with(PREFIX)
+                    && !provider_name.starts_with("Codex-Verge:"),
                 "Invalid Claude provider name"
             );
             providers.insert(provider_name);
@@ -275,12 +278,27 @@ impl ClaudeRouting {
         Ok(())
     }
 
-    pub fn apply(&self, mut config: Mapping) -> Result<Mapping> {
+    pub fn apply(&self, config: Mapping) -> Result<Mapping> {
+        self.apply_service(config, GROUP, PREFIX, claude_rules(), "claude-providers")
+    }
+
+    pub fn apply_codex(&self, config: Mapping) -> Result<Mapping> {
+        self.apply_service(config, "Codex-Verge", "Codex-Verge:", codex_rules(), "codex-providers")
+    }
+
+    fn apply_service(
+        &self,
+        mut config: Mapping,
+        group_name: &str,
+        prefix: &str,
+        service_rules: Vec<Value>,
+        provider_dir: &str,
+    ) -> Result<Mapping> {
         if !self.enabled {
             return Ok(config);
         }
         if self.validate().is_err() {
-            return Ok(reject_claude(config));
+            return Ok(reject_service(config, &service_rules, group_name));
         }
         let mut endpoints = self.endpoints()?;
         // Subscription extensions run first, but cannot claim our persisted control names.
@@ -289,9 +307,9 @@ impl ClaudeRouting {
                 if existing
                     .iter()
                     .filter_map(|item| item.get("name").and_then(Value::as_str))
-                    .any(|name| name == GROUP || name.starts_with(PREFIX))
+                    .any(|name| name == group_name || name.starts_with(prefix))
                 {
-                    return Ok(reject_claude(config));
+                    return Ok(reject_service(config, &service_rules, group_name));
                 }
             }
         }
@@ -299,19 +317,19 @@ impl ClaudeRouting {
             if existing
                 .keys()
                 .filter_map(Value::as_str)
-                .any(|name| name.starts_with(PREFIX))
+                .any(|name| name.starts_with(prefix))
             {
-                return Ok(reject_claude(config));
+                return Ok(reject_service(config, &service_rules, group_name));
             }
         }
         for node in &mut endpoints.proxies {
-            node.insert("name".into(), outbound(name(node)?).into());
-            rewrite_reference(node, "dialer-proxy");
+            node.insert("name".into(), outbound(name(node)?, prefix).into());
+            rewrite_reference(node, "dialer-proxy", prefix);
         }
         for group in &mut endpoints.groups {
-            group.insert("name".into(), outbound(name(group)?).into());
-            rewrite_list(group, "proxies")?;
-            rewrite_list(group, "use")?;
+            group.insert("name".into(), outbound(name(group)?, prefix).into());
+            rewrite_list(group, "proxies", prefix)?;
+            rewrite_list(group, "use", prefix)?;
             group.insert("empty-fallback".into(), "REJECT".into());
             group.insert("hidden".into(), true.into());
         }
@@ -323,20 +341,20 @@ impl ClaudeRouting {
         for (key, value) in &endpoints.providers {
             let provider_name = key.as_str().unwrap_or_default();
             let mut provider = value.as_mapping().cloned().unwrap_or_default();
-            rewrite_reference(&mut provider, "proxy");
+            rewrite_reference(&mut provider, "proxy", prefix);
             let mut overrides = provider
                 .get("override")
                 .and_then(Value::as_mapping)
                 .cloned()
                 .unwrap_or_default();
-            rewrite_reference(&mut overrides, "dialer-proxy");
-            let prefix = overrides
+            rewrite_reference(&mut overrides, "dialer-proxy", prefix);
+            let additional_prefix = overrides
                 .get("additional-prefix")
                 .and_then(Value::as_str)
                 .unwrap_or_default();
             overrides.insert(
                 "additional-prefix".into(),
-                format!("{PREFIX}{provider_name}:{prefix}").into(),
+                format!("{prefix}{provider_name}:{additional_prefix}").into(),
             );
             provider.insert("override".into(), Value::Mapping(overrides));
             let safe_name: String = provider_name
@@ -344,19 +362,19 @@ impl ClaudeRouting {
                 .iter()
                 .map(|byte| format!("{byte:02x}"))
                 .collect();
-            provider.insert("path".into(), format!("./claude-providers/{safe_name}.yaml").into());
+            provider.insert("path".into(), format!("./{provider_dir}/{safe_name}.yaml").into());
             if !provider.contains_key("interval") {
                 provider.insert("interval".into(), 3600.into());
             }
-            providers.insert(outbound(provider_name).into(), Value::Mapping(provider));
+            providers.insert(outbound(provider_name, prefix).into(), Value::Mapping(provider));
         }
         config.insert("proxy-providers".into(), Value::Mapping(providers));
         let mut control = Mapping::new();
-        control.insert("name".into(), GROUP.into());
+        control.insert("name".into(), group_name.into());
         control.insert("type".into(), "select".into());
         control.insert(
             "proxies".into(),
-            Value::Sequence(vec![outbound(&self.selected_exit).into()]),
+            Value::Sequence(vec![outbound(&self.selected_exit, prefix).into()]),
         );
         control.insert("hidden".into(), true.into());
         control.insert("empty-fallback".into(), "REJECT".into());
@@ -368,7 +386,7 @@ impl ClaudeRouting {
             }
             config.insert(key.into(), Value::Sequence(combined));
         }
-        let mut rules = claude_rules();
+        let mut rules = service_rules;
         if let Some(existing) = config.get("rules").and_then(Value::as_sequence) {
             rules.extend(existing.iter().cloned());
         }
@@ -377,16 +395,24 @@ impl ClaudeRouting {
     }
 }
 
-fn reject_claude(mut config: Mapping) -> Mapping {
-    let mut rules: Vec<Value> = claude_rules()
-        .into_iter()
-        .filter_map(|rule| rule.as_str().map(|text| text.replace(GROUP, "REJECT").into()))
+fn reject_service(mut config: Mapping, service_rules: &[Value], group_name: &str) -> Mapping {
+    let mut rules: Vec<Value> = service_rules
+        .iter()
+        .filter_map(|rule| rule.as_str().map(|text| text.replace(group_name, "REJECT").into()))
         .collect();
     if let Some(existing) = config.get("rules").and_then(Value::as_sequence) {
         rules.extend(existing.iter().cloned());
     }
     config.insert("rules".into(), Value::Sequence(rules));
     config
+}
+
+// Net.Coffee OpenAI domain snapshot, reviewed 2026-11-25; update as service domains change.
+fn codex_rules() -> Vec<Value> {
+    "openai.com,chatgpt.com,chat.com,sora.com,oaistatic.com,oaiusercontent.com,crixet.com,openai.com.cdn.cloudflare.net,openaicom.imgix.net,openaiapi-site.azureedge.net,production-openaicom-storage.azureedge.net,openaicomproductionae4b.blob.core.windows.net,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,webpubsub.azure.com,client-api.arkoselabs.com,openai-api.arkoselabs.com,chatgpt.livekit.cloud,host.livekit.cloud,turn.livekit.cloud,o33249.ingest.sentry.io,browser-intake-datadoghq.com"
+        .split(',')
+        .map(|domain| format!("DOMAIN-SUFFIX,{domain},Codex-Verge").into())
+        .collect()
 }
 
 // CleanIP Claude rules, reviewed 2026-11-25. This is a versioned snapshot, not a remote executable script.
@@ -406,6 +432,45 @@ fn claude_rules() -> Vec<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn codex_and_claude_keep_independent_exits_and_fail_closed() -> Result<()> {
+        let claude = routing();
+        let mut codex = routing();
+        codex.selected_exit = "Static".into();
+        let combined = codex.apply_codex(claude.apply(Mapping::new())?)?;
+        let groups = combined["proxy-groups"].as_sequence().unwrap();
+        assert!(
+            groups
+                .iter()
+                .any(|g| g["name"].as_str() == Some("Claude-Verge")
+                    && g["proxies"][0].as_str() == Some("Claude-Verge:US"))
+        );
+        assert!(groups.iter().any(
+            |g| g["name"].as_str() == Some("Codex-Verge") && g["proxies"][0].as_str() == Some("Codex-Verge:Static")
+        ));
+        assert!(
+            combined["rules"]
+                .as_sequence()
+                .unwrap()
+                .iter()
+                .any(|r| r.as_str() == Some("DOMAIN-SUFFIX,openai.com,Codex-Verge"))
+        );
+        assert!(
+            combined["rules"]
+                .as_sequence()
+                .unwrap()
+                .iter()
+                .any(|r| r.as_str() == Some("DOMAIN-SUFFIX,claude.ai,Claude-Verge"))
+        );
+        codex.selected_exit = "missing".into();
+        let rejected = codex.apply_codex(Mapping::new())?;
+        assert_eq!(rejected["rules"][0].as_str(), Some("DOMAIN-SUFFIX,openai.com,REJECT"));
+        codex.enabled = false;
+        let unchanged = claude.apply(Mapping::new())?;
+        assert_eq!(codex.apply_codex(unchanged.clone())?, unchanged);
+        Ok(())
+    }
 
     fn routing() -> ClaudeRouting {
         ClaudeRouting { enabled: true, selected_exit: "US".into(), exit_names: vec!["US".into(), "Static".into()], configuration: "proxies:\n  - {name: Static, type: http, server: example.com, port: 8080}\nproxy-providers:\n  VPS: {type: http, url: 'https://example.com/sub', path: '../../unsafe.yaml'}\nproxy-groups:\n  - {name: US, type: select, proxies: [Static]}\n".into() }

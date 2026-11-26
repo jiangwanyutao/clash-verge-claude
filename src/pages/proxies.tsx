@@ -207,6 +207,7 @@ const ProxyPage = () => {
       }
     >
       <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
+      <ClaudeRoutingPanel mode={curMode ?? 'rule'} service="Codex" />
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <ProxyGroups
           mode={curMode ?? 'rule'}
