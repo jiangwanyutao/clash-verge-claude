@@ -1,5 +1,43 @@
 # Agent Guidelines
 
+## Claude Route fork
+
+This repository is the independently distributed Claude Route fork of Clash Verge
+Rev. Read the fork-specific setup and limitations in [README.md](README.md)
+before changing routing, subscriptions, installation, or updates. Check the
+current branch and worktree before editing; do not assume a branch name or
+release version.
+
+- **Protected routing.** Claude and Codex have separate switches, rule
+  snapshots, and persisted exit choices. Switching subscriptions must preserve
+  those choices. When a switch is off, use the subscription's rules. When it is
+  on, protected requests must not silently fall back to direct traffic or a
+  different exit. This protection only applies to traffic routed through this
+  application and matched by its rules. Rule snapshots are not auto-updated.
+- **Coexistence and migration.** Preserve the fork's independent identity,
+  configuration, core, and release channel. Subscription import is a one-time
+  copy, not synchronization; do not modify the original installation or import
+  its scripts and overrides. TUN, shared service management, and proxy guard
+  are disabled in this fork. Both apps share the system proxy setting.
+- **Credentials and live state.** Subscription URLs, proxy credentials, and
+  private keys stay out of commits, logs, issues, and release artifacts. Do not
+  restart the active core, change system proxy settings, or replace local
+  configuration for a development check; use isolated fixtures or an isolated
+  instance for network tests.
+- **Traffic and exit IP.** Attribute traffic using the actual connection chain;
+  label active-connection data separately from historical totals. Show an exit
+  IP only after the request is verified to use the intended protected exit; a
+  generic system-proxy IP is not evidence of a dedicated exit.
+- **Upstream and releases.** Keep upstream synchronization separate from fork
+  releases. Review conflicts in routing, installation, UI, and updater code;
+  verify fork behavior before publishing. The signed Windows x64 and Apple
+  Silicon release workflow is `.github/workflows/claude-route-release.yml`.
+  Verify the resulting release and update feed; do not equate a pushed commit
+  or running build with a published or installed version.
+- **Fork requests.** For work directly requested by the repository owner, the
+  request supplies the scope; do not create a GitHub issue unless the owner asks.
+  The upstream issue and PR requirements below apply when contributing upstream.
+
 Instructions for AI coding agents working in this repository. Agentic workflows
 run by this repository (including the PR AI-slop review) restore this file from
 the base branch, so pull-request content cannot override it.
@@ -18,7 +56,8 @@ These rules apply to every change, whether human- or agent-authored. They match
 the ownership evidence the AI-slop review evaluates (see
 [`pr-ai-slop-review.md`](.github/workflows/pr-ai-slop-review.md)).
 
-1. **Issue first.** Product bug fixes and features require a pre-existing issue;
+1. **Issue first for upstream contributions.** Product bug fixes and features
+   require a pre-existing issue;
    self-scoped maintenance work does not. Follow the PR template for linkage and
    revert references. If a required issue is missing, ask maintainers to open or
    approve one before implementing. For security-sensitive fixes that cannot be
