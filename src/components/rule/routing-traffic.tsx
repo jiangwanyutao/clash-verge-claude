@@ -25,7 +25,18 @@ export function RoutingTraffic({ enabled }: { enabled: boolean }) {
   const connections = response.data.activeConnections
 
   return (
-    <Paper variant="outlined" sx={{ mx: '10px', p: 1.5 }}>
+    <Paper
+      variant="outlined"
+      sx={{
+        mx: '10px',
+        p: 1.5,
+        bgcolor: 'var(--glass-bg-strong)',
+        borderColor: 'var(--glass-edge)',
+        borderRadius: 'var(--glass-radius-card)',
+        boxShadow: 'var(--glass-card-shadow)',
+        fontVariantNumeric: 'tabular-nums',
+      }}
+    >
       <Typography variant="subtitle2">专用分流流量</Typography>
       <Typography variant="caption" color="text.secondary">
         仅统计当前经过专用代理组的活动连接，连接关闭后不再计入；不是历史总量。
@@ -36,7 +47,12 @@ export function RoutingTraffic({ enabled }: { enabled: boolean }) {
           return (
             <Box
               key={service}
-              sx={{ flex: 1, p: 1, borderRadius: 1, bgcolor: 'action.hover' }}
+              sx={{
+                flex: 1,
+                p: 1,
+                borderRadius: 'var(--glass-radius-control)',
+                bgcolor: 'var(--glass-muted)',
+              }}
             >
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {service} · {total.count} 个活动连接

@@ -34,7 +34,13 @@ const RuleItem = (props: Props) => {
   const { value } = props
 
   return (
-    <Item sx={{ borderBottom: '1px solid var(--divider-color)' }}>
+    <Item
+      sx={{
+        borderBottom: '1px solid var(--glass-hairline)',
+        fontVariantNumeric: 'tabular-nums',
+        '&:hover': { bgcolor: 'var(--glass-muted)' },
+      }}
+    >
       <Typography
         color="text.secondary"
         variant="body2"
