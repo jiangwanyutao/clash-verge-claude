@@ -1,5 +1,12 @@
+import { useSyncExternalStore } from 'react'
 import { MihomoWebSocket, Traffic } from 'tauri-plugin-mihomo-api'
 
+import {
+  getTrafficConnected,
+  isTrafficSample,
+  setTrafficConnected,
+  subscribeTrafficConnected,
+} from './traffic-connection-status'
 import { useMihomoWsSubscription } from './use-mihomo-ws-subscription'
 import { useTrafficMonitorEnhanced } from './use-traffic-monitor'
 
@@ -27,6 +34,11 @@ const shouldSkipDuplicateTraffic = (traffic: Traffic) => {
 
 export const useTrafficData = (options?: { enabled?: boolean }) => {
   const enabled = options?.enabled ?? true
+  const connected = useSyncExternalStore(
+    subscribeTrafficConnected,
+    getTrafficConnected,
+    getTrafficConnected,
+  )
 
   const {
     graphData: { appendData },
@@ -40,6 +52,7 @@ export const useTrafficData = (options?: { enabled?: boolean }) => {
     setupHandlers: ({ next, scheduleReconnect }) => ({
       handleMessage: (data) => {
         if (data.startsWith('Websocket error')) {
+          setTrafficConnected(false)
           next(data, FALLBACK_TRAFFIC)
           void scheduleReconnect()
           return
@@ -47,17 +60,27 @@ export const useTrafficData = (options?: { enabled?: boolean }) => {
 
         try {
           const parsed = JSON.parse(data) as Traffic
+          if (!isTrafficSample(parsed)) {
+            setTrafficConnected(false)
+            return
+          }
+          setTrafficConnected(true)
           if (shouldSkipDuplicateTraffic(parsed)) {
             return
           }
           appendData(parsed)
           next(null, parsed)
         } catch (error) {
+          setTrafficConnected(false)
           next(error, FALLBACK_TRAFFIC)
         }
       },
     }),
   })
 
-  return { response, refreshGetClashTraffic: refresh }
+  return {
+    response,
+    refreshGetClashTraffic: refresh,
+    connected: enabled && connected,
+  }
 }

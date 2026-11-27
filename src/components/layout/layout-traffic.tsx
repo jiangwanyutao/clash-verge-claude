@@ -75,6 +75,7 @@ export const LayoutTraffic = () => {
 
   const {
     response: { data: traffic },
+    connected,
   } = useTrafficData({ enabled: pageVisible })
   const {
     response: { data: memory },
@@ -94,7 +95,6 @@ export const LayoutTraffic = () => {
   const [up, upUnit] = parseTraffic(traffic?.up || 0)
   const [down, downUnit] = parseTraffic(traffic?.down || 0)
   const [inuse, inuseUnit] = parseTraffic(memory?.inuse || 0)
-  const connected = pageVisible && !!traffic
 
   const boxStyle: Pick<BoxProps, 'sx'> = {
     sx: {
@@ -172,7 +172,7 @@ export const LayoutTraffic = () => {
                 variant="caption"
                 sx={{ color: connected ? 'success.main' : 'text.secondary' }}
               >
-                {connected ? '已连接' : '未连接'}
+                {connected ? '流量连接正常' : '流量未连接'}
               </Typography>
             </Box>
           </Box>
