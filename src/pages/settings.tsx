@@ -9,7 +9,6 @@ import SettingSystem from '@/components/setting/setting-system'
 import SettingVergeAdvanced from '@/components/setting/setting-verge-advanced'
 import SettingVergeBasic from '@/components/setting/setting-verge-basic'
 import { showNotice } from '@/services/notice-service'
-import { useThemeMode } from '@/services/states'
 import { openExternalUrl } from '@/utils/open-external-url'
 
 const SettingPage = () => {
@@ -35,86 +34,77 @@ const SettingPage = () => {
     openExternalUrl('https://t.me/clash_verge_re').catch(onError),
   )
 
-  const mode = useThemeMode()
-  const isDark = mode === 'light' ? false : true
+  const cardSx = {
+    borderRadius: 'var(--glass-radius-card)',
+    bgcolor: 'var(--glass-bg-strong)',
+    border: '1px solid var(--glass-edge)',
+    boxShadow: 'var(--glass-card-shadow)',
+  }
 
   return (
-    <BasePage
-      title={t('settings.page.title')}
-      header={
-        <ButtonGroup
-          variant="contained"
-          aria-label={t('settings.page.actionsGroupLabel')}
-        >
-          <IconButton
-            size="medium"
-            color="inherit"
-            title={t('settings.page.actions.manual')}
-            onClick={toGithubDoc}
-          >
-            <HelpOutlineRounded fontSize="inherit" />
-          </IconButton>
-          <IconButton
-            size="medium"
-            color="inherit"
-            title={t('settings.page.actions.telegram')}
-            onClick={toTelegramChannel}
-          >
-            <Telegram fontSize="inherit" />
-          </IconButton>
-
-          <IconButton
-            size="medium"
-            color="inherit"
-            title={t('settings.page.actions.github')}
-            onClick={toGithubRepo}
-          >
-            <GitHub fontSize="inherit" />
-          </IconButton>
-        </ButtonGroup>
-      }
+    <Box
+      sx={{
+        height: '100%',
+        '& .base-container, & .base-container > section': {
+          backgroundColor: 'transparent !important',
+        },
+      }}
     >
-      <Grid container spacing={1.5} columns={{ xs: 6, sm: 6, md: 12 }}>
-        <Grid size={6}>
-          <Box
-            sx={{
-              borderRadius: 2,
-              marginBottom: 1.5,
-              backgroundColor: isDark ? '#282a36' : '#ffffff',
-            }}
+      <BasePage
+        title={t('settings.page.title')}
+        header={
+          <ButtonGroup
+            variant="contained"
+            aria-label={t('settings.page.actionsGroupLabel')}
           >
-            <SettingSystem onError={onError} />
-          </Box>
-          <Box
-            sx={{
-              borderRadius: 2,
-              backgroundColor: isDark ? '#282a36' : '#ffffff',
-            }}
-          >
-            <SettingClash onError={onError} />
-          </Box>
+            <IconButton
+              size="medium"
+              color="inherit"
+              title={t('settings.page.actions.manual')}
+              onClick={toGithubDoc}
+            >
+              <HelpOutlineRounded fontSize="inherit" />
+            </IconButton>
+            <IconButton
+              size="medium"
+              color="inherit"
+              title={t('settings.page.actions.telegram')}
+              onClick={toTelegramChannel}
+            >
+              <Telegram fontSize="inherit" />
+            </IconButton>
+
+            <IconButton
+              size="medium"
+              color="inherit"
+              title={t('settings.page.actions.github')}
+              onClick={toGithubRepo}
+            >
+              <GitHub fontSize="inherit" />
+            </IconButton>
+          </ButtonGroup>
+        }
+      >
+        <Grid container spacing={1.5} columns={{ xs: 6, sm: 6, md: 12 }}>
+          <Grid size={6}>
+            <Box sx={{ ...cardSx, marginBottom: 1.5 }}>
+              <SettingSystem onError={onError} />
+            </Box>
+            <Box sx={cardSx}>
+              <SettingClash onError={onError} />
+            </Box>
+          </Grid>
+          <Grid size={6}>
+            <Box sx={{ ...cardSx, marginBottom: 1.5 }}>
+              <SettingVergeBasic onError={onError} />
+            </Box>
+            <Box sx={cardSx}>
+              <SettingVergeAdvanced onError={onError} />
+            </Box>
+          </Grid>
         </Grid>
-        <Grid size={6}>
-          <Box
-            sx={{
-              borderRadius: 2,
-              marginBottom: 1.5,
-              backgroundColor: isDark ? '#282a36' : '#ffffff',
-            }}
-          >
-            <SettingVergeBasic onError={onError} />
-          </Box>
-          <Box
-            sx={{
-              borderRadius: 2,
-              backgroundColor: isDark ? '#282a36' : '#ffffff',
-            }}
-          >
-            <SettingVergeAdvanced onError={onError} />
-          </Box>
-        </Grid>
-      </Grid>
-    </BasePage>
+      </BasePage>
+    </Box>
   )
 }
 
