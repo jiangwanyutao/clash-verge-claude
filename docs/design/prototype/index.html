@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clash Verge · 玻璃拟态界面原型</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Geist', 'system-ui', 'sans-serif'], mono: ['Geist Mono', 'ui-monospace', 'monospace'] },
+        colors: {
+          fg: 'rgb(var(--fg) / <alpha-value>)', sub: 'rgb(var(--sub) / <alpha-value>)',
+          primary: 'rgb(var(--primary) / <alpha-value>)', ok: 'rgb(var(--ok) / <alpha-value>)',
+          warn: 'rgb(var(--warn) / <alpha-value>)', bad: 'rgb(var(--bad) / <alpha-value>)',
+          line: 'var(--hair)', muted: 'var(--muted)',
+        },
+      },
+    },
+  }
+</script>
+<style>
+  :root {
+    --fg: 15 23 42; --sub: 71 85 105; --primary: 37 99 235;
+    --ok: 22 163 74; --warn: 217 119 6; --bad: 220 38 38;
+    --win: rgba(246, 248, 252, .52); --glass: rgba(255, 255, 255, .52); --glass-strong: rgba(255, 255, 255, .78);
+    --edge: rgba(255, 255, 255, .7); --hair: rgba(15, 23, 42, .08); --muted: rgba(15, 23, 42, .05);
+    --shine: rgba(255, 255, 255, .85); --veil: rgba(255, 255, 255, 0);
+  }
+  .dark {
+    --fg: 241 245 249; --sub: 148 163 184; --primary: 96 150 255;
+    --ok: 52 211 153; --warn: 251 191 36; --bad: 248 113 113;
+    --win: rgba(14, 17, 24, .55); --glass: rgba(30, 34, 44, .45); --glass-strong: rgba(44, 50, 64, .7);
+    --edge: rgba(255, 255, 255, .1); --hair: rgba(255, 255, 255, .07); --muted: rgba(255, 255, 255, .05);
+    --shine: rgba(255, 255, 255, .12); --veil: rgba(4, 6, 12, .58);
+  }
+  html, body { min-height: 100%; }
+  body {
+    font-family: Geist, system-ui, sans-serif;
+    background: #8aa0c4 url('./img/wallpaper.png') center / cover fixed;
+  }
+  body::before { content: ''; position: fixed; inset: 0; background: var(--veil); pointer-events: none; transition: background .3s; }
+
+  .window {
+    background: var(--win);
+    backdrop-filter: blur(36px) saturate(170%); -webkit-backdrop-filter: blur(36px) saturate(170%);
+    border: 1px solid var(--edge);
+    box-shadow: 0 40px 90px -30px rgba(10, 20, 45, .55), inset 0 1px 0 var(--shine);
+  }
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid var(--edge);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 24px -12px rgba(15, 23, 42, .18), inset 0 1px 0 var(--shine);
+  }
+  .glass-strong { background: var(--glass-strong); border: 1px solid var(--edge); box-shadow: 0 1px 2px rgba(15,23,42,.06), inset 0 1px 0 var(--shine); }
+  .glass-head {
+    background: linear-gradient(to bottom, var(--win), transparent);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  }
+  .btn-primary {
+    background: rgb(var(--primary)); color: #fff;
+    box-shadow: 0 6px 16px -6px rgb(var(--primary) / .7), inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .tint { background: linear-gradient(135deg, rgb(var(--primary) / .16), rgb(var(--primary) / .03)); }
+
+  .scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 8px; }
+  .nav-item[aria-current="page"] { background: var(--glass-strong); color: rgb(var(--fg)); box-shadow: 0 1px 2px rgba(15,23,42,.08), inset 0 1px 0 var(--shine); }
+  .nav-item[aria-current="page"] svg { color: rgb(var(--primary)); }
+
+  .switch { width: 36px; height: 21px; border-radius: 999px; background: rgba(120, 130, 150, .3); position: relative; transition: background .2s; flex-shrink: 0; box-shadow: inset 0 1px 2px rgba(0,0,0,.12); }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 999px; background: #fff; transition: transform .2s cubic-bezier(.3,.7,.4,1.3); box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+  .switch[aria-checked="true"] { background: rgb(var(--primary)); }
+  .switch[aria-checked="true"]::after { transform: translateX(15px); }
+  .seg { background: var(--muted); box-shadow: inset 0 1px 2px rgba(15,23,42,.06); }
+  .seg button[aria-pressed="true"] { background: var(--glass-strong); color: rgb(var(--fg)); box-shadow: 0 1px 3px rgba(15,23,42,.12), inset 0 1px 0 var(--shine); }
+
+  .pulse { position: relative; }
+  .pulse::after { content: ''; position: absolute; inset: -3px; border-radius: 999px; background: currentColor; opacity: .35; animation: ping 2s ease-out infinite; }
+  @keyframes ping { 0% { transform: scale(.6); opacity: .45 } 100% { transform: scale(2.2); opacity: 0 } }
+
+  .page { animation: in .28s ease-out; }
+  @keyframes in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .stagger > * { animation: in .4s ease-out both; }
+  .stagger > *:nth-child(2) { animation-delay: .05s } .stagger > *:nth-child(3) { animation-delay: .1s }
+  .stagger > *:nth-child(4) { animation-delay: .15s } .stagger > *:nth-child(5) { animation-delay: .2s }
+  .stagger > *:nth-child(6) { animation-delay: .25s } .stagger > *:nth-child(n+7) { animation-delay: .3s }
+  @media (prefers-reduced-motion: reduce) { .page, .stagger > *, .pulse::after { animation: none; } }
+  select option { color: #0f172a; }
+</style>
+</head>
+<body class="relative p-3 md:p-8 text-fg">
+
+<div id="app" class="window relative mx-auto flex h-[780px] max-w-[1200px] flex-col overflow-hidden rounded-2xl">
+  <header class="flex h-12 shrink-0 items-center justify-between px-4 select-none">
+    <div class="flex items-center gap-4">
+      <div class="flex gap-2" aria-hidden="true">
+        <span class="h-3 w-3 rounded-full bg-[#ff5f57] shadow-inner"></span><span class="h-3 w-3 rounded-full bg-[#febc2e] shadow-inner"></span><span class="h-3 w-3 rounded-full bg-[#28c840] shadow-inner"></span>
+      </div>
+      <span class="text-xs font-medium text-sub" id="crumb">首页</span>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button id="cmdk" class="glass hidden md:flex h-8 w-72 items-center gap-2 rounded-lg px-2.5 text-xs text-sub hover:text-fg">
+        <i data-lucide="search" class="h-3.5 w-3.5"></i>搜索节点、规则、设置<span class="ml-auto rounded border border-line px-1 font-mono text-[10px]">⌘K</span>
+      </button>
+      <button id="theme" class="flex h-8 w-8 items-center justify-center rounded-lg text-sub hover:bg-muted hover:text-fg" aria-label="切换深色模式"><i data-lucide="moon" class="h-4 w-4"></i></button>
+    </div>
+  </header>
+
+  <div class="flex min-h-0 flex-1">
+    <aside class="flex w-16 md:w-56 shrink-0 flex-col px-2.5 pb-3">
+      <div class="mb-5 mt-1 hidden md:flex items-center gap-2.5 px-2">
+        <div class="btn-primary flex h-8 w-8 items-center justify-center rounded-lg"><i data-lucide="zap" class="h-4 w-4"></i></div>
+        <div class="leading-tight"><div class="text-sm font-semibold">Clash Verge</div><div class="text-[11px] text-sub">v2.5.14 · Mihomo</div></div>
+      </div>
+      <nav id="nav" class="flex flex-col gap-0.5" aria-label="主导航"></nav>
+      <div class="glass mt-auto hidden md:block rounded-xl p-3">
+        <div class="flex items-center justify-between text-[11px] text-sub"><span>实时流量</span><span class="flex items-center gap-1.5 text-ok"><span class="pulse h-1.5 w-1.5 rounded-full bg-ok"></span>已连接</span></div>
+        <div class="mt-2 flex flex-col gap-1 font-mono text-xs">
+          <div class="flex items-center justify-between"><span class="flex items-center gap-1 text-sub"><i data-lucide="arrow-up" class="h-3 w-3"></i>上传</span><span id="up">0 KB/s</span></div>
+          <div class="flex items-center justify-between"><span class="flex items-center gap-1 text-sub"><i data-lucide="arrow-down" class="h-3 w-3"></i>下载</span><span id="down">0 KB/s</span></div>
+        </div>
+        <svg id="mini" viewBox="0 0 160 32" class="mt-2 h-8 w-full" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+    </aside>
+
+    <main id="main" class="scroll relative min-w-0 flex-1 overflow-y-auto rounded-tl-2xl border-l border-t border-line"></main>
+  </div>
+</div>
+
+<p class="relative mx-auto mt-4 max-w-[1200px] text-center text-xs text-[#0f172a]/70 dark:text-[#e2e8f0]/70">原型：点击左侧导航切换页面；开关、模式、节点选择、延迟检测、规则搜索均可交互，数据为示例。</p>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s)
+const icon = (n, c = 'h-4 w-4') => `<i data-lucide="${n}" class="${c}"></i>`
+
+const NAV = [
+  ['home', '首页', 'layout-dashboard'], ['proxies', '代理', 'globe'], ['routing', '专用分流', 'route'],
+  ['profiles', '订阅', 'layers'], ['connections', '连接', 'activity'], ['rules', '规则', 'list-filter'],
+  ['logs', '日志', 'scroll-text'], ['unlock', '解锁检测', 'shield-check'], ['settings', '设置', 'settings'],
+]
+
+const state = {
+  page: 'home', mode: 'rule', sysproxy: true, tun: false, group: 'Proxy', selected: '香港 02',
+  routing: { Claude: { enabled: true, exit: '美国 洛杉矶 01', delay: null }, Codex: { enabled: true, exit: '日本 东京 03', delay: null } },
+  logLevel: 'all', ruleQuery: '',
+}
+
+const GROUPS = [
+  { name: 'Proxy', type: 'Selector', count: 12 }, { name: 'Auto', type: 'URLTest', count: 12 },
+  { name: 'Claude-Verge', type: 'Selector', count: 6 }, { name: 'Codex-Verge', type: 'Selector', count: 6 },
+  { name: 'Streaming', type: 'Selector', count: 8 }, { name: 'Telegram', type: 'Selector', count: 5 },
+]
+const NODES = [
+  ['香港 01', 'Trojan', 42], ['香港 02', 'Trojan', 38], ['香港 03', 'VMess', 61], ['日本 东京 01', 'Hysteria2', 76],
+  ['日本 东京 03', 'Hysteria2', 82], ['新加坡 01', 'VLESS', 95], ['美国 洛杉矶 01', 'VLESS', 168], ['美国 圣何塞 02', 'Trojan', 184],
+  ['台湾 01', 'VMess', 0], ['英国 伦敦 01', 'Shadowsocks', 241], ['德国 法兰克福', 'Shadowsocks', 262], ['韩国 首尔 01', 'Trojan', 88],
+]
+const delayColor = (d) => d === 0 ? 'text-bad' : d < 100 ? 'text-ok' : d < 200 ? 'text-warn' : 'text-bad'
+const delayText = (d) => d === 0 ? '超时' : `${d} ms`
+const nodeOf = (n) => NODES.find((x) => x[0] === n) || NODES[1]
+
+/* ---------- 通用组件 ---------- */
+const Card = (title, body, extra = '', cls = '') => `
+  <section class="glass rounded-xl ${cls}">
+    ${title ? `<div class="flex h-11 items-center justify-between px-4"><h3 class="text-[13px] font-semibold">${title}</h3>${extra}</div>` : ''}
+    <div class="px-4 pb-4 ${title ? '' : 'pt-4'}">${body}</div>
+  </section>`
+const Switch = (id, on, label) => `<button class="switch" role="switch" aria-checked="${on}" aria-label="${label}" data-toggle="${id}"></button>`
+const Btn = (label, ic, attrs = '', variant = 'outline') => {
+  const v = variant === 'primary' ? 'btn-primary' : variant === 'ghost' ? 'text-sub hover:bg-muted hover:text-fg' : 'glass-strong hover:text-primary'
+  return `<button ${attrs} class="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium ${v}">${ic ? icon(ic, 'h-3.5 w-3.5') : ''}${label}</button>`
+}
+const Badge = (t, tone = 'muted') => {
+  const m = { muted: 'bg-muted text-sub', primary: 'bg-primary/10 text-primary', ok: 'bg-ok/10 text-ok', bad: 'bg-bad/10 text-bad', warn: 'bg-warn/10 text-warn' }
+  return `<span class="inline-flex h-5 items-center rounded-md px-1.5 text-[11px] font-medium ${m[tone]}">${t}</span>`
+}
+const PageHead = (title, desc, actions = '') => `
+  <div class="glass-head sticky top-0 z-10 flex flex-wrap items-end justify-between gap-3 px-6 pb-4 pt-5">
+    <div><h1 class="text-xl font-semibold tracking-tight text-balance">${title}</h1><p class="mt-1 text-xs text-sub text-pretty">${desc}</p></div>
+    <div class="flex items-center gap-2">${actions}</div>
+  </div>`
+const Search = (ph, id) => `<label class="relative flex items-center"><span class="sr-only">${ph}</span>${icon('search', 'absolute left-2.5 h-3.5 w-3.5 text-sub')}<input id="${id}" placeholder="${ph}" class="glass-strong h-8 w-56 rounded-lg pl-8 pr-2 text-xs outline-none placeholder:text-sub focus:ring-2 focus:ring-primary/30" /></label>`
+const Avatar = (n, cls = 'h-9 w-9') => `<div class="glass-strong flex ${cls} items-center justify-center rounded-lg text-sm font-semibold text-primary">${n[0]}</div>`
+
+/* ---------- 页面 ---------- */
+const pages = {}
+
+pages.home = () => {
+  const [, type, ms] = nodeOf(state.selected)
+  const modeLabel = { rule: '规则模式', global: '全局模式', direct: '直连模式' }[state.mode]
+  return `
+  ${PageHead('概览', '当前订阅「机场 Pro」· 已运行 3 小时 24 分', Btn('刷新', 'refresh-cw') + Btn('导入订阅', 'plus', '', 'primary'))}
+  <div class="stagger grid grid-cols-1 gap-4 px-6 pb-6 lg:grid-cols-3">
+    <section class="glass lg:col-span-3 overflow-hidden rounded-2xl">
+      <div class="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div class="tint flex items-center gap-5 p-5">
+          <div class="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl btn-primary">
+            ${icon('shield-check', 'h-7 w-7')}
+            <span class="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[rgb(var(--ok))] ring-2 ring-[var(--glass-strong)]"><span class="pulse h-1.5 w-1.5 rounded-full bg-white text-white"></span></span>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs text-sub">当前出口 · ${modeLabel}</div>
+            <div class="mt-1 truncate text-2xl font-semibold tracking-tight">${state.selected}</div>
+            <div class="mt-1 flex items-center gap-2 text-xs text-sub">${Badge('Proxy', 'primary')}<span>${type}</span><span class="font-mono ${delayColor(ms)}">${delayText(ms)}</span></div>
+          </div>
+        </div>
+        <div class="flex flex-col justify-center gap-2.5 border-line p-5 md:border-l">
+          <div class="text-xs text-sub">代理模式</div>
+          <div class="seg inline-flex w-fit rounded-lg p-0.5 text-xs" role="group" aria-label="代理模式">
+            ${[['rule', '规则'], ['global', '全局'], ['direct', '直连']].map(([k, l]) => `<button data-mode="${k}" aria-pressed="${state.mode === k}" class="h-7 rounded-md px-3.5 text-sub">${l}</button>`).join('')}
+          </div>
+        </div>
+        <div class="flex flex-col justify-center gap-3 border-line p-5 md:border-l">
+          <div class="flex items-center justify-between text-sm"><span class="flex items-center gap-2">${icon('monitor', 'h-4 w-4 text-sub')}系统代理</span>${Switch('sysproxy', state.sysproxy, '系统代理')}</div>
+          <div class="flex items-center justify-between text-sm"><span class="flex items-center gap-2">${icon('cable', 'h-4 w-4 text-sub')}虚拟网卡 TUN</span>${Switch('tun', state.tun, 'TUN 模式')}</div>
+        </div>
+      </div>
+    </section>
+
+    ${Card('流量趋势', `
+      <div class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        ${[['上传', 'bigUp', '—'], ['下载', 'bigDown', '—'], ['本次累计', '', '2.31 GB'], ['活动连接', '', '47']].map(([l, id, v]) => `
+          <div class="rounded-lg bg-muted px-3 py-2"><div class="text-[11px] text-sub">${l}</div><div class="mt-0.5 font-mono text-[15px] font-semibold" ${id ? `id="${id}"` : ''}>${v}</div></div>`).join('')}
+      </div>
+      <svg id="chart" viewBox="0 0 600 160" class="h-40 w-full" preserveAspectRatio="none" role="img" aria-label="近 60 秒上传下载流量曲线"></svg>`,
+      `<div class="flex items-center gap-3 text-[11px] text-sub"><span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-primary"></span>下载</span><span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-sub"></span>上传</span></div>`, 'lg:col-span-2')}
+
+    ${Card('专用分流', `<div class="flex flex-col gap-2">${['Claude', 'Codex'].map((n) => RoutingRow(n)).join('')}</div>`,
+      `<button data-go="routing" class="text-xs font-medium text-primary hover:underline">管理</button>`)}
+
+    ${Card('IP 信息', `
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs">
+        <dt class="text-sub">IP</dt><dd class="font-mono">103.152.**.**</dd>
+        <dt class="text-sub">地区</dt><dd>中国香港 · HKT</dd>
+        <dt class="text-sub">ASN</dt><dd class="font-mono">AS4760</dd>
+        <dt class="text-sub">时区</dt><dd>Asia/Hong_Kong</dd>
+      </dl>`, Btn('', 'rotate-cw', 'aria-label="重新检测"', 'ghost'))}
+
+    ${Card('订阅', `
+      <div class="flex items-center justify-between text-sm"><span class="font-medium">机场 Pro</span>${Badge('自动更新', 'primary')}</div>
+      <div class="mt-3 h-2 overflow-hidden rounded-full bg-muted"><div class="h-full w-[38%] rounded-full bg-primary shadow-[0_0_10px_rgb(var(--primary)/.5)]"></div></div>
+      <div class="mt-2 flex justify-between text-[11px] text-sub"><span>已用 76.4 GB / 200 GB</span><span>到期 2027-03-01</span></div>
+      <div class="mt-3 text-[11px] text-sub">上次更新 12 分钟前</div>`, Btn('', 'refresh-cw', 'aria-label="更新订阅"', 'ghost'))}
+
+    ${Card('系统信息', `
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-xs">
+        <dt class="text-sub">内核</dt><dd class="font-mono">Mihomo v1.19.31</dd>
+        <dt class="text-sub">系统</dt><dd>macOS 15.2 · arm64</dd>
+        <dt class="text-sub">服务模式</dt><dd class="flex items-center gap-1.5 text-ok"><span class="h-1.5 w-1.5 rounded-full bg-ok"></span>已安装</dd>
+        <dt class="text-sub">混合端口</dt><dd class="font-mono">7897</dd>
+      </dl>`)}
+  </div>`
+}
+
+function RoutingRow(n) {
+  const r = state.routing[n]
+  const d = r.delay
+  return `
+    <div class="flex items-center gap-3 rounded-lg bg-muted p-2.5">
+      ${Avatar(n, 'h-8 w-8')}
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2 text-sm font-medium">${n} ${r.enabled ? Badge('已启用', 'ok') : Badge('已关闭')}</div>
+        <div class="mt-0.5 truncate text-xs text-sub">出口 · ${r.exit}</div>
+      </div>
+      <span class="w-12 text-right font-mono text-xs ${d === null || d === 'busy' ? 'text-sub' : delayColor(d)}">${d === null ? '未检测' : d === 'busy' ? '…' : delayText(d)}</span>
+      <button data-test="${n}" class="glass-strong flex h-7 w-7 items-center justify-center rounded-md hover:text-primary" aria-label="检测 ${n} 出口延迟">${icon('gauge', 'h-3.5 w-3.5')}</button>
+    </div>`
+}
+
+pages.proxies = () => `
+  ${PageHead('代理', '选择代理组和节点，延迟基于 generate_204 检测', Search('搜索节点', 'nodeSearch') + Btn('测速全部', 'gauge') + Btn('', 'arrow-down-up', 'aria-label="排序"'))}
+  <div class="grid grid-cols-1 gap-4 px-6 pb-6 md:grid-cols-[210px_1fr]">
+    <div class="glass flex flex-col gap-0.5 self-start rounded-xl p-1.5">
+      ${GROUPS.map((g) => {
+        const on = state.group === g.name
+        return `<button data-group="${g.name}" class="flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm ${on ? 'glass-strong text-primary' : 'hover:bg-muted'}">
+          <span class="min-w-0"><span class="block truncate font-medium">${g.name}</span><span class="block text-[11px] text-sub">${g.type}</span></span>
+          <span class="font-mono text-[11px] text-sub">${g.count}</span>
+        </button>`
+      }).join('')}
+    </div>
+    <div>
+      <div class="mb-3 flex items-center justify-between">
+        <div class="flex items-center gap-2"><h2 class="text-sm font-semibold">${state.group}</h2>${Badge('Selector')}<span class="text-xs text-sub">当前：${state.selected}</span></div>
+        <div class="seg inline-flex rounded-lg p-0.5 text-xs" role="group" aria-label="视图"><button aria-pressed="true" class="h-6 rounded-md px-2 text-sub">${icon('layout-grid', 'h-3.5 w-3.5')}<span class="sr-only">网格</span></button><button aria-pressed="false" class="h-6 rounded-md px-2 text-sub">${icon('list', 'h-3.5 w-3.5')}<span class="sr-only">列表</span></button></div>
+      </div>
+      <div class="stagger grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+        ${NODES.map(([n, t, d]) => {
+          const on = n === state.selected
+          return `<button data-node="${n}" class="glass flex items-center justify-between rounded-xl px-3.5 py-3 text-left transition hover:-translate-y-px ${on ? 'ring-2 ring-primary/60' : ''}">
+            <span class="min-w-0"><span class="flex items-center gap-1.5 truncate text-sm font-medium">${on ? `<span class="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white">${icon('check', 'h-2.5 w-2.5')}</span>` : ''}${n}</span><span class="mt-0.5 block text-[11px] text-sub">${t} · UDP</span></span>
+            <span class="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] ${delayColor(d)}">${delayText(d)}</span>
+          </button>`
+        }).join('')}
+      </div>
+    </div>
+  </div>`
+
+pages.routing = () => `
+  ${PageHead('专用分流', '为 Claude、Codex 等 AI 服务指定独立出口，避免与常规流量混用节点', Btn('导入规则', 'download') + Btn('新增分流', 'plus', '', 'primary'))}
+  <div class="stagger grid grid-cols-1 gap-4 px-6 pb-6 lg:grid-cols-2">
+    ${['Claude', 'Codex'].map((n) => {
+      const r = state.routing[n]
+      const domains = n === 'Claude' ? ['claude.ai', 'anthropic.com', 'api.anthropic.com', 'claudeusercontent.com'] : ['chatgpt.com', 'openai.com', 'api.openai.com', 'oaistatic.com', 'oaiusercontent.com']
+      return `<section class="glass overflow-hidden rounded-2xl">
+        <div class="${r.enabled ? 'tint' : ''} flex items-center justify-between p-4">
+          <div class="flex items-center gap-3">${Avatar(n, 'h-10 w-10')}
+          <div><h3 class="text-sm font-semibold">${n}</h3><p class="text-xs text-sub">策略组 ${n}-Verge · ${domains.length} 条域名规则</p></div></div>
+          ${Switch('route-' + n, r.enabled, n + ' 分流')}
+        </div>
+        <div class="flex flex-col gap-4 p-4 ${r.enabled ? '' : 'opacity-50 pointer-events-none'}">
+          <div>
+            <label class="text-xs font-medium" for="exit-${n}">出口节点</label>
+            <div class="mt-1.5 flex gap-2">
+              <select id="exit-${n}" data-exit="${n}" class="glass-strong h-9 flex-1 rounded-lg px-2.5 text-sm text-fg outline-none focus:ring-2 focus:ring-primary/30">
+                ${NODES.filter((x) => x[2] > 0).map(([x]) => `<option ${x === r.exit ? 'selected' : ''}>${x}</option>`).join('')}
+              </select>
+              <button data-test="${n}" class="glass-strong inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-medium hover:text-primary">${icon('gauge', 'h-3.5 w-3.5')}${r.delay === null ? '检测' : r.delay === 'busy' ? '检测中' : `<span class="font-mono ${delayColor(r.delay)}">${delayText(r.delay)}</span>`}</button>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between"><span class="text-xs font-medium">匹配域名</span><button class="text-xs font-medium text-primary hover:underline">编辑</button></div>
+            <div class="mt-1.5 flex flex-wrap gap-1.5">${domains.map((d) => `<span class="inline-flex h-6 items-center rounded-md bg-muted px-2 font-mono text-[11px]">${d}</span>`).join('')}</div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <div class="rounded-lg bg-muted p-2.5"><div class="text-sub">今日流量</div><div class="mt-0.5 font-mono font-medium">${n === 'Claude' ? '312 MB' : '98 MB'}</div></div>
+            <div class="rounded-lg bg-muted p-2.5"><div class="text-sub">活动连接</div><div class="mt-0.5 font-mono font-medium">${n === 'Claude' ? 6 : 2}</div></div>
+            <div class="rounded-lg bg-muted p-2.5"><div class="text-sub">防泄漏</div><div class="mt-0.5 flex items-center gap-1 font-medium text-ok">${icon('lock', 'h-3 w-3')}已保护</div></div>
+          </div>
+        </div>
+      </section>`
+    }).join('')}
+  </div>`
+
+pages.profiles = () => `
+  ${PageHead('订阅', '管理配置文件、合并与脚本增强', `<div class="glass-strong flex h-8 items-center rounded-lg pl-2.5 pr-0.5"><label class="flex"><span class="sr-only">订阅链接</span><input placeholder="粘贴订阅链接…" class="w-64 bg-transparent text-xs outline-none placeholder:text-sub" /></label><button class="btn-primary h-7 rounded-md px-3 text-xs font-medium">导入</button></div>` + Btn('', 'folder-open', 'aria-label="本地导入"'))}
+  <div class="stagger grid grid-cols-1 gap-3 px-6 pb-6 md:grid-cols-2 xl:grid-cols-3">
+    ${[['机场 Pro', 38, '76.4 / 200 GB', '12 分钟前', true], ['备用订阅', 71, '142 / 200 GB', '2 小时前', false], ['公司内网', 0, '本地文件', '3 天前', false], ['测试配置', 12, '6 / 50 GB', '1 天前', false]].map(([n, p, u, t, on]) => `
+      <article class="glass flex flex-col rounded-2xl p-4 ${on ? 'ring-2 ring-primary/60' : ''}">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5"><div class="flex h-9 w-9 items-center justify-center rounded-lg ${on ? 'btn-primary' : 'glass-strong text-sub'}">${icon(p ? 'cloud' : 'file-text')}</div>
+          <div><h3 class="text-sm font-semibold">${n}</h3><p class="text-[11px] text-sub">更新于 ${t}</p></div></div>
+          ${on ? Badge('使用中', 'primary') : Btn('', 'more-horizontal', 'aria-label="更多"', 'ghost')}
+        </div>
+        ${p ? `<div class="mt-4 h-2 overflow-hidden rounded-full bg-muted"><div class="h-full rounded-full ${p > 70 ? 'bg-warn' : 'bg-primary'}" style="width:${p}%"></div></div>` : '<div class="mt-4 h-2"></div>'}
+        <div class="mt-2 flex justify-between text-[11px] text-sub"><span>${u}</span>${p ? `<span>${p}%</span>` : ''}</div>
+        <div class="mt-4 flex gap-1 border-t border-line pt-3">${Btn('编辑', 'pencil', '', 'ghost')}${Btn('更新', 'refresh-cw', '', 'ghost')}</div>
+      </article>`).join('')}
+    <button class="flex min-h-[176px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--edge)] bg-muted text-sub hover:text-primary">${icon('plus', 'h-5 w-5')}<span class="text-xs">新建配置</span></button>
+  </div>`
+
+pages.connections = () => {
+  const rows = [
+    ['api.anthropic.com:443', 'Claude-Verge', '美国 洛杉矶 01', 'DOMAIN-SUFFIX', '1.2 MB', '84 KB', 'Claude'],
+    ['chatgpt.com:443', 'Codex-Verge', '日本 东京 03', 'DOMAIN-SUFFIX', '640 KB', '22 KB', 'Codex'],
+    ['github.com:443', 'Proxy', '香港 02', 'DOMAIN-SUFFIX', '3.4 MB', '120 KB', ''],
+    ['www.youtube.com:443', 'Streaming', '新加坡 01', 'GEOSITE', '48.2 MB', '1.1 MB', ''],
+    ['www.baidu.com:443', 'DIRECT', '—', 'GEOIP,CN', '210 KB', '12 KB', ''],
+    ['t.me:443', 'Telegram', '香港 01', 'DOMAIN', '88 KB', '6 KB', ''],
+    ['registry.npmjs.org:443', 'Proxy', '香港 02', 'MATCH', '12.6 MB', '48 KB', ''],
+  ]
+  return `
+  ${PageHead('连接', '47 个活动连接 · ↓ 2.1 MB/s ↑ 186 KB/s', Search('筛选主机、规则', 'connSearch') + Btn('', 'columns-3', 'aria-label="列设置"') + Btn('全部断开', 'x-circle'))}
+  <div class="px-6 pb-6"><div class="glass overflow-x-auto rounded-2xl">
+    <table class="w-full text-left text-xs">
+      <thead class="border-b border-line text-sub"><tr>${['主机', '策略组', '出口', '规则', '下载', '上传', ''].map((h) => `<th class="px-4 py-3 font-medium">${h}</th>`).join('')}</tr></thead>
+      <tbody class="stagger">${rows.map((r) => `<tr class="border-b border-line last:border-0 hover:bg-muted">
+        <td class="px-4 py-2.5 font-mono">${r[0]}</td><td class="px-4 py-2.5">${r[6] ? Badge(r[1], 'primary') : r[1] === 'DIRECT' ? Badge('DIRECT') : r[1]}</td>
+        <td class="px-4 py-2.5 text-sub">${r[2]}</td><td class="px-4 py-2.5 font-mono text-sub">${r[3]}</td>
+        <td class="px-4 py-2.5 font-mono">${r[4]}</td><td class="px-4 py-2.5 font-mono">${r[5]}</td>
+        <td class="px-4 py-2.5 text-right"><button class="text-sub hover:text-bad" aria-label="断开">${icon('x', 'h-3.5 w-3.5')}</button></td></tr>`).join('')}</tbody>
+    </table></div></div>`
+}
+
+const RULES = [
+  ['DOMAIN-SUFFIX', 'anthropic.com', 'Claude-Verge'], ['DOMAIN-SUFFIX', 'claude.ai', 'Claude-Verge'], ['DOMAIN-SUFFIX', 'openai.com', 'Codex-Verge'],
+  ['DOMAIN-SUFFIX', 'chatgpt.com', 'Codex-Verge'], ['GEOSITE', 'youtube', 'Streaming'], ['GEOSITE', 'telegram', 'Telegram'],
+  ['DOMAIN-KEYWORD', 'github', 'Proxy'], ['GEOSITE', 'cn', 'DIRECT'], ['GEOIP', 'CN', 'DIRECT'], ['IP-CIDR', '192.168.0.0/16', 'DIRECT'], ['MATCH', '—', 'Proxy'],
+]
+pages.rules = () => {
+  const q = state.ruleQuery.toLowerCase()
+  const list = RULES.filter((r) => r.join(' ').toLowerCase().includes(q))
+  return `
+  ${PageHead('规则', `共 ${RULES.length} 条规则，自上而下匹配`, Search('搜索规则', 'ruleSearch') + Btn('规则集', 'package'))}
+  <div class="px-6 pb-6"><div class="glass rounded-2xl p-1.5">
+    ${list.map((r, i) => `<div class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs hover:bg-muted">
+      <span class="w-6 font-mono text-sub">${i + 1}</span>
+      <span class="w-32 shrink-0">${Badge(r[0], r[2].endsWith('Verge') ? 'primary' : 'muted')}</span>
+      <span class="flex-1 truncate font-mono">${r[1]}</span>
+      <span class="flex items-center gap-1.5 text-sub">${icon('arrow-right', 'h-3 w-3')}<span class="${r[2] === 'DIRECT' ? 'text-sub' : 'font-medium text-fg'}">${r[2]}</span></span>
+    </div>`).join('') || `<div class="p-10 text-center text-xs text-sub">没有匹配的规则</div>`}
+  </div></div>`
+}
+
+const LOGS = [
+  ['info', '14:21:03', '[TCP] 127.0.0.1:52144 --> api.anthropic.com:443 match DomainSuffix(anthropic.com) using Claude-Verge[美国 洛杉矶 01]'],
+  ['info', '14:21:02', '[TCP] 127.0.0.1:52140 --> chatgpt.com:443 match DomainSuffix(chatgpt.com) using Codex-Verge[日本 东京 03]'],
+  ['warn', '14:20:58', '[UDP] dial 香港 03 failed: i/o timeout, retrying'],
+  ['info', '14:20:55', '[TCP] 127.0.0.1:52133 --> github.com:443 match DomainKeyword(github) using Proxy[香港 02]'],
+  ['error', '14:20:41', '[Provider] 备用订阅 pull error: context deadline exceeded'],
+  ['debug', '14:20:40', '[DNS] resolve registry.npmjs.org from fakeip 198.18.0.31'],
+  ['info', '14:20:37', '[TCP] 127.0.0.1:52101 --> www.baidu.com:443 match GeoIP(CN) using DIRECT'],
+]
+pages.logs = () => {
+  const tone = { info: 'primary', warn: 'warn', error: 'bad', debug: 'muted' }
+  const list = LOGS.filter((l) => state.logLevel === 'all' || l[0] === state.logLevel)
+  return `
+  ${PageHead('日志', '实时内核日志', `<div class="seg inline-flex rounded-lg p-0.5 text-xs" role="group" aria-label="日志级别">${['all', 'info', 'warn', 'error', 'debug'].map((l) => `<button data-level="${l}" aria-pressed="${state.logLevel === l}" class="h-7 rounded-md px-2.5 uppercase text-sub">${l === 'all' ? '全部' : l}</button>`).join('')}</div>` + Btn('暂停', 'pause') + Btn('清空', 'trash-2'))}
+  <div class="px-6 pb-6"><div class="glass rounded-2xl p-1.5 font-mono text-xs">
+    ${list.map((l) => `<div class="flex gap-3 rounded-lg px-3 py-2 leading-relaxed hover:bg-muted"><span class="shrink-0 text-sub">${l[1]}</span><span class="w-12 shrink-0">${Badge(l[0].toUpperCase(), tone[l[0]])}</span><span class="break-all">${l[2]}</span></div>`).join('')}
+  </div></div>`
+}
+
+pages.unlock = () => `
+  ${PageHead('解锁检测', '检测当前出口对流媒体与 AI 服务的可用性', Btn('全部检测', 'play', '', 'primary'))}
+  <div class="stagger grid grid-cols-1 gap-3 px-6 pb-6 sm:grid-cols-2 xl:grid-cols-4">
+    ${[['Claude', '可用', 'ok', 'US'], ['ChatGPT', '可用', 'ok', 'JP'], ['Gemini', '可用', 'ok', 'HK'], ['Netflix', '仅自制剧', 'warn', 'SG'], ['YouTube Premium', '可用', 'ok', 'HK'], ['Disney+', '不可用', 'bad', '—'], ['Spotify', '可用', 'ok', 'HK'], ['TikTok', '可用', 'ok', 'JP']].map(([n, s, t, r]) => `
+      <div class="glass rounded-2xl p-4">
+        <div class="flex items-center justify-between"><span class="text-sm font-medium">${n}</span><span class="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] text-sub">${r}</span></div>
+        <div class="mt-4 flex items-center justify-between">${Badge(s, t)}<button class="text-sub hover:text-primary" aria-label="重新检测 ${n}">${icon('rotate-cw', 'h-3.5 w-3.5')}</button></div>
+      </div>`).join('')}
+  </div>`
+
+pages.settings = () => {
+  const Row = (t, d, ctl) => `<div class="flex items-center justify-between gap-4 border-b border-line px-4 py-3 last:border-0"><div><div class="text-sm">${t}</div>${d ? `<div class="mt-0.5 text-xs text-sub">${d}</div>` : ''}</div>${ctl}</div>`
+  const Sel = (v) => `<button class="glass-strong inline-flex h-8 min-w-28 items-center justify-between gap-2 rounded-lg px-2.5 text-xs">${v}${icon('chevrons-up-down', 'h-3 w-3 text-sub')}</button>`
+  const Sec = (t, rows) => `<section><h2 class="mb-2 px-1 text-xs font-medium text-sub">${t}</h2><div class="glass rounded-2xl">${rows}</div></section>`
+  return `
+  ${PageHead('设置', '系统、内核与界面偏好')}
+  <div class="stagger mx-auto flex max-w-3xl flex-col gap-6 px-6 pb-6">
+    ${Sec('系统', Row('开机自启', '登录系统后自动启动 Clash Verge', Switch('a', true, '开机自启')) + Row('静默启动', '启动时不显示主窗口', Switch('b', false, '静默启动')) + Row('服务模式', '以系统服务运行内核，TUN 模式需要', `<span class="flex items-center gap-2">${Badge('已安装', 'ok')}${Btn('卸载', '', '', 'ghost')}</span>`))}
+    ${Sec('Clash 内核', Row('混合端口', 'HTTP / SOCKS5 共用端口', `<input value="7897" aria-label="混合端口" class="glass-strong h-8 w-24 rounded-lg px-2 text-right font-mono text-xs outline-none focus:ring-2 focus:ring-primary/30" />`) + Row('局域网连接', '允许局域网设备使用此代理', Switch('c', false, '局域网连接')) + Row('IPv6', '', Switch('d', true, 'IPv6')) + Row('日志等级', '', Sel('info')) + Row('内核版本', 'Mihomo v1.19.31', Btn('检查更新', 'refresh-cw')))}
+    ${Sec('界面', Row('主题', '', Sel('跟随系统')) + Row('语言', '', Sel('简体中文')) + Row('托盘点击行为', '', Sel('打开主窗口')))}
+  </div>`
+}
+
+/* ---------- 渲染与交互 ---------- */
+function renderNav() {
+  $('#nav').innerHTML = NAV.map(([k, l, ic]) => `
+    <button data-go="${k}" ${state.page === k ? 'aria-current="page"' : ''} class="nav-item flex h-9 items-center justify-center md:justify-start gap-2.5 rounded-lg px-2.5 text-sm text-sub hover:bg-muted hover:text-fg" title="${l}">
+      ${icon(ic)}<span class="hidden md:inline">${l}</span>
+    </button>`).join('')
+}
+function render() {
+  renderNav()
+  $('#main').innerHTML = `<div class="page">${pages[state.page]()}</div>`
+  $('#crumb').textContent = NAV.find((n) => n[0] === state.page)[1]
+  lucide.createIcons()
+  drawChart()
+}
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button'); if (!t) return
+  const d = t.dataset
+  if (d.go) { state.page = d.go; $('#main').scrollTop = 0; render() }
+  else if (d.mode) { state.mode = d.mode; render() }
+  else if (d.group) { state.group = d.group; render() }
+  else if (d.node) { state.selected = d.node; render() }
+  else if (d.level) { state.logLevel = d.level; render() }
+  else if (d.toggle) {
+    const on = t.getAttribute('aria-checked') !== 'true'
+    t.setAttribute('aria-checked', on)
+    if (d.toggle === 'sysproxy' || d.toggle === 'tun') state[d.toggle] = on
+    if (d.toggle.startsWith('route-')) { state.routing[d.toggle.slice(6)].enabled = on; render() }
+  } else if (d.test) {
+    const r = state.routing[d.test]; r.delay = 'busy'; render()
+    setTimeout(() => { r.delay = Math.round(60 + Math.random() * 160); render() }, 700)
+  }
+})
+document.addEventListener('change', (e) => {
+  if (e.target.dataset.exit) { const r = state.routing[e.target.dataset.exit]; r.exit = e.target.value; r.delay = null; render() }
+})
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'ruleSearch') {
+    state.ruleQuery = e.target.value; render()
+    const el = $('#ruleSearch'); el.focus(); el.setSelectionRange(el.value.length, el.value.length)
+  }
+})
+$('#theme').addEventListener('click', () => {
+  const dark = document.documentElement.classList.toggle('dark')
+  $('#theme').innerHTML = icon(dark ? 'sun' : 'moon'); lucide.createIcons(); drawChart()
+})
+
+/* ---------- 流量模拟 ---------- */
+const down = Array.from({ length: 60 }, () => 600 + Math.random() * 1500)
+const up = Array.from({ length: 60 }, () => 80 + Math.random() * 200)
+const fmt = (k) => k > 1024 ? (k / 1024).toFixed(2) + ' MB/s' : Math.round(k) + ' KB/s'
+const path = (arr, w, h, max) => arr.map((v, i) => `${i ? 'L' : 'M'}${(i / (arr.length - 1)) * w},${h - (v / max) * (h - 6)}`).join(' ')
+function drawChart() {
+  const css = getComputedStyle(document.documentElement)
+  const p = `rgb(${css.getPropertyValue('--primary').trim()})`, s = `rgb(${css.getPropertyValue('--sub').trim()})`, l = css.getPropertyValue('--hair').trim()
+  const max = Math.max(...down) * 1.15
+  const c = $('#chart')
+  if (c) {
+    const grid = [40, 80, 120].map((y) => `<line x1="0" x2="600" y1="${y}" y2="${y}" stroke="${l}" stroke-dasharray="3 4"/>`).join('')
+    const d = path(down, 600, 160, max)
+    c.innerHTML = `<defs><linearGradient id="fillG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p}" stop-opacity=".28"/><stop offset="1" stop-color="${p}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${d} L600,160 L0,160Z" fill="url(#fillG)"/><path d="${d}" fill="none" stroke="${p}" stroke-width="2" vector-effect="non-scaling-stroke"/><path d="${path(up, 600, 160, max)}" fill="none" stroke="${s}" stroke-width="1.25" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/>`
+    $('#bigUp').textContent = fmt(up.at(-1)); $('#bigDown').textContent = fmt(down.at(-1))
+  }
+  $('#mini').innerHTML = `<path d="${path(down.slice(-30), 160, 32, max)}" fill="none" stroke="${p}" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`
+  $('#up').textContent = fmt(up.at(-1)); $('#down').textContent = fmt(down.at(-1))
+}
+setInterval(() => {
+  down.shift(); down.push(Math.max(200, down.at(-1) + (Math.random() - 0.5) * 700))
+  up.shift(); up.push(Math.max(30, up.at(-1) + (Math.random() - 0.5) * 90))
+  drawChart()
+}, 1000)
+
+render()
+</script>
+</body>
+</html>

@@ -61,6 +61,13 @@ the ownership evidence the AI-slop review evaluates (see
     [`template/Changelog.md`](template/Changelog.md): one line per
     user-visible change, no internals.
 
+## UI Redesign
+
+Visual changes for the glass UI redesign must follow
+[`docs/design/glass-ui.md`](docs/design/glass-ui.md) and its prototype. That
+work is styling-only: never change services, hooks, stores, providers, props,
+or IPC calls as part of it.
+
 ## Issue and PR Workflows
 
 When drafting, triaging, splitting, or implementing from a community issue, use
