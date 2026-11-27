@@ -88,119 +88,141 @@ const LogPage = () => {
   }
 
   return (
-    <BasePage
-      full
-      title={t('logs.page.title')}
-      contentStyle={{
+    <Box
+      sx={{
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
+        '& .base-container, & .base-container > section': {
+          backgroundColor: 'transparent !important',
+        },
       }}
-      header={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton
-            title={t(
-              enableLog ? 'shared.actions.pause' : 'shared.actions.resume',
-            )}
-            aria-label={t(
-              enableLog ? 'shared.actions.pause' : 'shared.actions.resume',
-            )}
-            size="small"
-            color="inherit"
-            onClick={handleToggleLog}
-          >
-            {enableLog ? (
-              <PauseCircleOutlineRounded />
-            ) : (
-              <PlayCircleOutlineRounded />
-            )}
-          </IconButton>
-          <IconButton
-            title={t(
-              isDescending
-                ? 'logs.actions.showAscending'
-                : 'logs.actions.showDescending',
-            )}
-            aria-label={t(
-              isDescending
-                ? 'logs.actions.showAscending'
-                : 'logs.actions.showDescending',
-            )}
-            size="small"
-            color="inherit"
-            onClick={handleToggleOrder}
-          >
-            <SwapVertRounded
-              sx={{
-                transform: isDescending ? 'scaleY(-1)' : 'none',
-                transition: 'transform 0.2s ease',
-              }}
-            />
-          </IconButton>
-
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              refreshGetClashLog(true)
-            }}
-          >
-            {t('shared.actions.clear')}
-          </Button>
-        </Box>
-      }
     >
-      <Box
-        sx={{
-          pt: 1,
-          mb: 0.5,
-          mx: '10px',
-          height: '39px',
+      <BasePage
+        full
+        title={t('logs.page.title')}
+        contentStyle={{
+          height: '100%',
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
+          overflow: 'auto',
         }}
-      >
-        <BaseStyledSelect
-          value={logState}
-          onChange={(e) => handleLogLevelChange(e.target.value as LogFilter)}
-        >
-          <MenuItem value="all">{t('shared.filters.logLevels.all')}</MenuItem>
-          <MenuItem value="debug">
-            {t('shared.filters.logLevels.debug')}
-          </MenuItem>
-          <MenuItem value="info">{t('shared.filters.logLevels.info')}</MenuItem>
-          <MenuItem value="warn">{t('shared.filters.logLevels.warn')}</MenuItem>
-          <MenuItem value="err">{t('shared.filters.logLevels.error')}</MenuItem>
-        </BaseStyledSelect>
-        <BaseSearchBox
-          onSearch={(matcher, state) => {
-            setMatch(() => matcher)
-            setSearchState(state)
-          }}
-        />
-      </Box>
+        header={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton
+              title={t(
+                enableLog ? 'shared.actions.pause' : 'shared.actions.resume',
+              )}
+              aria-label={t(
+                enableLog ? 'shared.actions.pause' : 'shared.actions.resume',
+              )}
+              size="small"
+              color="inherit"
+              onClick={handleToggleLog}
+            >
+              {enableLog ? (
+                <PauseCircleOutlineRounded />
+              ) : (
+                <PlayCircleOutlineRounded />
+              )}
+            </IconButton>
+            <IconButton
+              title={t(
+                isDescending
+                  ? 'logs.actions.showAscending'
+                  : 'logs.actions.showDescending',
+              )}
+              aria-label={t(
+                isDescending
+                  ? 'logs.actions.showAscending'
+                  : 'logs.actions.showDescending',
+              )}
+              size="small"
+              color="inherit"
+              onClick={handleToggleOrder}
+            >
+              <SwapVertRounded
+                sx={{
+                  transform: isDescending ? 'scaleY(-1)' : 'none',
+                  transition: 'transform 0.2s ease',
+                }}
+              />
+            </IconButton>
 
-      {filteredLogs.length > 0 ? (
-        <VirtualList
-          ref={virtuosoRef}
-          count={filteredLogs.length}
-          estimateSize={50}
-          renderItem={(i) => (
-            <LogItem value={filteredLogs[i]} searchState={searchState} />
-          )}
-          onScroll={(event) => {
-            const element = event.currentTarget as HTMLDivElement
-            scrollRef.current.isNearBottom =
-              element.scrollHeight - element.scrollTop - element.clientHeight <=
-              20
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => {
+                refreshGetClashLog(true)
+              }}
+            >
+              {t('shared.actions.clear')}
+            </Button>
+          </Box>
+        }
+      >
+        <Box
+          sx={{
+            pt: 1,
+            mb: 0.5,
+            mx: '10px',
+            height: '39px',
+            display: 'flex',
+            alignItems: 'center',
           }}
-          style={{ flex: 1 }}
-        />
-      ) : (
-        <BaseEmpty />
-      )}
-    </BasePage>
+        >
+          <BaseStyledSelect
+            value={logState}
+            onChange={(e) => handleLogLevelChange(e.target.value as LogFilter)}
+          >
+            <MenuItem value="all">{t('shared.filters.logLevels.all')}</MenuItem>
+            <MenuItem value="debug">
+              {t('shared.filters.logLevels.debug')}
+            </MenuItem>
+            <MenuItem value="info">
+              {t('shared.filters.logLevels.info')}
+            </MenuItem>
+            <MenuItem value="warn">
+              {t('shared.filters.logLevels.warn')}
+            </MenuItem>
+            <MenuItem value="err">
+              {t('shared.filters.logLevels.error')}
+            </MenuItem>
+          </BaseStyledSelect>
+          <BaseSearchBox
+            onSearch={(matcher, state) => {
+              setMatch(() => matcher)
+              setSearchState(state)
+            }}
+          />
+        </Box>
+
+        {filteredLogs.length > 0 ? (
+          <VirtualList
+            ref={virtuosoRef}
+            count={filteredLogs.length}
+            estimateSize={50}
+            renderItem={(i) => (
+              <LogItem value={filteredLogs[i]} searchState={searchState} />
+            )}
+            onScroll={(event) => {
+              const element = event.currentTarget as HTMLDivElement
+              scrollRef.current.isNearBottom =
+                element.scrollHeight -
+                  element.scrollTop -
+                  element.clientHeight <=
+                20
+            }}
+            style={{
+              flex: 1,
+              background: 'var(--glass-bg)',
+              border: '1px solid var(--glass-edge)',
+              borderRadius: 'var(--glass-radius-card)',
+            }}
+          />
+        ) : (
+          <BaseEmpty />
+        )}
+      </BasePage>
+    </Box>
   )
 }
 

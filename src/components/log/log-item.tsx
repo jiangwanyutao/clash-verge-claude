@@ -7,10 +7,14 @@ const Item = styled(Box)(({ theme: { palette, typography } }) => ({
   padding: '8px 0',
   margin: '0 12px',
   lineHeight: 1.35,
-  borderBottom: `1px solid ${palette.divider}`,
+  borderBottom: '1px solid var(--glass-hairline)',
   fontSize: '0.875rem',
   fontFamily: typography.fontFamily,
+  fontVariantNumeric: 'tabular-nums',
   userSelect: 'text',
+  '&:hover': {
+    backgroundColor: 'var(--glass-muted)',
+  },
   '& .time': {
     color: palette.text.secondary,
   },
