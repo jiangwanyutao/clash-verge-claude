@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next'
 import { BasePage } from '@/components/base'
 import { ClashModeCard } from '@/components/home/clash-mode-card'
 import { CurrentProxyCard } from '@/components/home/current-proxy-card'
+import { DedicatedRoutingCard } from '@/components/home/dedicated-routing-card'
 import { EnhancedCard } from '@/components/home/enhanced-card'
 import { EnhancedTrafficStats } from '@/components/home/enhanced-traffic-stats'
 import { HomeProfileCard } from '@/components/home/home-profile-card'
@@ -97,6 +98,7 @@ const DEFAULT_HOME_CARDS: HomeCardsSettings = {
   systeminfo: true,
   test: true,
   ip: true,
+  dedicatedRouting: true,
 }
 
 const serializeCardFlags = (cards: HomeCardsSettings) =>
@@ -137,6 +139,15 @@ const HomeSettingsDialog = ({
       <DialogTitle>{t('home.page.settings.title')}</DialogTitle>
       <DialogContent>
         <FormGroup>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={cards.dedicatedRouting ?? true}
+                onChange={() => handleToggle('dedicatedRouting')}
+              />
+            }
+            label="专用分流状态"
+          />
           <FormControlLabel
             control={
               <Checkbox
@@ -239,8 +250,13 @@ const HomePage = () => {
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   // 卡片显示状态
-  const homeCards =
-    (verge?.home_cards as HomeCardsSettings | undefined) ?? DEFAULT_HOME_CARDS
+  const homeCards = useMemo(
+    () => ({
+      ...DEFAULT_HOME_CARDS,
+      ...(verge?.home_cards as HomeCardsSettings | undefined),
+    }),
+    [verge?.home_cards],
+  )
 
   // 文档链接函数
   const toGithubDoc = useLockFn(() =>
@@ -274,6 +290,7 @@ const HomePage = () => {
         <HomeProfileCard current={current} onProfileUpdated={mutateProfiles} />,
       ),
       renderCard('proxy', <CurrentProxyCard />),
+      renderCard('dedicatedRouting', <DedicatedRoutingCard />),
       renderCard('network', <NetworkSettingsCard />),
       renderCard('mode', <ClashModeEnhancedCard />),
     ],
