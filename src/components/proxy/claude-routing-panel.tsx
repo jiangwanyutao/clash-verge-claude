@@ -23,6 +23,12 @@ import { showNotice } from '@/services/notice-service'
 import parseTraffic from '@/utils/parse-traffic'
 
 import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
+import {
+  currentRoutingDelay,
+  routingProtected,
+  routingTestKey,
+  routingTestTarget,
+} from './routing-test-state'
 
 type Routing = Required<NonNullable<IVergeConfig['claude_routing']>>
 
@@ -56,7 +62,10 @@ export function ClaudeRoutingPanel({
   const [configuration, setConfiguration] = useState('')
   const [exits, setExits] = useState('')
   const [error, setError] = useState('')
-  const [delay, setDelay] = useState<number | null>(null)
+  const [delayResult, setDelayResult] = useState<{
+    key: string
+    value: number
+  } | null>(null)
   const [testing, setTesting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const snapshotRef = useRef<HTMLInputElement>(null)
@@ -125,23 +134,32 @@ export function ClaudeRoutingPanel({
   const selectedExit = routing.exit_names.includes(routing.selected_exit)
     ? routing.selected_exit
     : ''
+  const testKey = routingTestKey(
+    service,
+    selectedExit,
+    routing.enabled,
+    routing.configuration,
+  )
+  const delay = currentRoutingDelay(testKey, delayResult)
+  const protectedRoute = routingProtected(routing.enabled, mode)
 
   const testUrl =
     verge?.default_latency_test?.trim() ||
     'http://cp.cloudflare.com/generate_204'
   const testTimeout = verge?.default_latency_timeout || 10000
   const runTest = useLockFn(async () => {
-    if (!selectedExit) return
+    const target = routingTestTarget(service, selectedExit, routing.enabled)
+    if (!target) return
     setTesting(true)
     try {
       const result = await delayManager.unifiedDelayCheck(
-        selectedExit,
+        target,
         testUrl,
         testTimeout,
       )
-      setDelay(result.delay)
+      setDelayResult({ key: testKey, value: result.delay })
     } catch {
-      setDelay(1e6)
+      setDelayResult({ key: testKey, value: 1e6 })
     } finally {
       setTesting(false)
     }
@@ -153,9 +171,10 @@ export function ClaudeRoutingPanel({
       size="small"
       label="出口节点"
       value={selectedExit}
-      disabled={busy || !routing.exit_names.length}
+      disabled={busy || testing || !routing.exit_names.length}
       sx={{ flex: 1, minWidth: 140 }}
       onChange={(event) => {
+        setDelayResult(null)
         void save({ ...routing, selected_exit: event.target.value })
       }}
     >
@@ -246,7 +265,7 @@ export function ClaudeRoutingPanel({
           </Box>
           <Switch
             checked={routing.enabled}
-            disabled={busy || !verge || !routing.exit_names.length}
+            disabled={busy || testing || !verge || !routing.exit_names.length}
             onChange={(_, enabled) => {
               void save({ ...routing, enabled })
             }}
@@ -291,7 +310,7 @@ export function ClaudeRoutingPanel({
         {exitSelect}
         <Button
           variant="outlined"
-          disabled={busy || testing || !selectedExit}
+          disabled={busy || testing || !selectedExit || !routing.enabled}
           onClick={runTest}
           startIcon={<SpeedRounded />}
           sx={{
@@ -308,7 +327,7 @@ export function ClaudeRoutingPanel({
         </Button>
         <Button
           variant="outlined"
-          disabled={busy || !verge}
+          disabled={busy || testing || !verge}
           onClick={configure}
           sx={{ flexShrink: 0 }}
         >
@@ -330,8 +349,8 @@ export function ClaudeRoutingPanel({
           )}
           {statBox(
             '防泄漏',
-            routing.enabled ? '已保护' : '未开启',
-            routing.enabled ? 'success.main' : 'text.secondary',
+            protectedRoute ? '已保护' : '未生效',
+            protectedRoute ? 'success.main' : 'text.secondary',
           )}
         </Stack>
       )}
@@ -342,7 +361,9 @@ export function ClaudeRoutingPanel({
 
       {routing.enabled && mode !== 'rule' && (
         <Alert severity="warning" sx={{ mt: 1 }}>
-          当前不是规则模式，{service} 专用分流不会按规则生效。请先切换到“规则”。
+          {mode
+            ? `当前不是规则模式，${service} 专用分流不会按规则生效。请先切换到“规则”。`
+            : `尚未确认代理模式，${service} 专用分流的保护状态未知。`}
         </Alert>
       )}
       <BaseDialog

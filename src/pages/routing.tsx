@@ -7,7 +7,7 @@ import { useClashConfigData } from '@/providers/app-data-context'
 
 const RoutingPage = () => {
   const { clashConfig } = useClashConfigData()
-  const mode = clashConfig?.mode?.toLowerCase() ?? 'rule'
+  const mode = clashConfig?.mode?.toLowerCase() ?? ''
   const { response } = useConnectionData({ enabled: true })
   const connections = response.data.activeConnections
 
