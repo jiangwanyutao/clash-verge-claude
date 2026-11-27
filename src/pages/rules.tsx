@@ -11,6 +11,7 @@ import {
 } from '@/components/base'
 import { ScrollTopButton } from '@/components/layout/scroll-top-button'
 import { ProviderButton } from '@/components/rule/provider-button'
+import { RoutingTraffic } from '@/components/rule/routing-traffic'
 import RuleItem from '@/components/rule/rule-item'
 import { useVisibility } from '@/hooks/use-visibility'
 import { useAppRefreshers, useRulesData } from '@/providers/app-data-context'
@@ -69,6 +70,7 @@ const RulesPage = () => {
         </Box>
       }
     >
+      <RoutingTraffic enabled={pageVisible} />
       <Box
         sx={{
           pt: 1,
