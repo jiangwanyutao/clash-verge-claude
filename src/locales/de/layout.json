@@ -4,6 +4,7 @@
       "tabs": {
         "home": "Startseite",
         "proxies": "Proxy",
+        "routing": "Routing",
         "profiles": "Abonnement",
         "connections": "Verbindungen",
         "rules": "Regeln",

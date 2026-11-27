@@ -210,6 +210,7 @@ export interface TranslationResources {
             logs: string
             profiles: string
             proxies: string
+            routing: string
             rules: string
             settings: string
             unlock: string
@@ -1589,6 +1590,7 @@ export interface TranslationResources {
           noDisney: string
           originalsOnly: string
           pending: string
+          risky: string
           unsupportedRegion: string
           yes: string
         }

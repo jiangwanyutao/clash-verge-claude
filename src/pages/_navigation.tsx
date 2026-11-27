@@ -1,3 +1,4 @@
+import AltRouteOutlinedIcon from '@mui/icons-material/AltRouteOutlined'
 import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined'
 import ForkRightOutlinedIcon from '@mui/icons-material/ForkRightOutlined'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
@@ -23,6 +24,7 @@ import HomePage from './home'
 import LogsPage from './logs'
 import ProfilePage from './profiles'
 import ProxyPage from './proxies'
+import RoutingPage from './routing'
 import RulesPage from './rules'
 import SettingPage from './settings'
 import UnlockPage from './unlock'
@@ -44,6 +46,11 @@ export const navItems: NavigationItem[] = [
     ...navigationItems.proxies,
     icon: [<WifiOutlinedIcon key="mui" />, <ProxiesSvg key="svg" />],
     Component: ProxyPage,
+  },
+  {
+    ...navigationItems.routing,
+    icon: [<AltRouteOutlinedIcon key="mui" />, <RulesSvg key="svg" />],
+    Component: RoutingPage,
   },
   {
     ...navigationItems.profiles,

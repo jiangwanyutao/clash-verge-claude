@@ -1,5 +1,6 @@
 import {
   Alert,
+  Avatar,
   Box,
   Button,
   FormControlLabel,
@@ -13,19 +14,29 @@ import { useLockFn } from 'ahooks'
 import { useRef, useState } from 'react'
 
 import { BaseDialog } from '@/components/base'
+import { routingTraffic } from '@/components/rule/routing-traffic'
 import { useVerge } from '@/hooks/use-verge'
 import { showNotice } from '@/services/notice-service'
+import parseTraffic from '@/utils/parse-traffic'
 
 import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
 
 type Routing = Required<NonNullable<IVergeConfig['claude_routing']>>
 
+const formatBytes = (bytes: number) => parseTraffic(bytes).join(' ')
+
+const EMPTY_CONNECTIONS: IConnectionsItem[] = []
+
 export function ClaudeRoutingPanel({
   mode,
   service = 'Claude',
+  variant = 'compact',
+  connections = EMPTY_CONNECTIONS,
 }: {
   mode: string
   service?: 'Claude' | 'Codex'
+  variant?: 'compact' | 'full'
+  connections?: IConnectionsItem[]
 }) {
   const { verge, patchVerge } = useVerge()
   const current =
@@ -103,70 +114,163 @@ export function ClaudeRoutingPanel({
     }
   }
 
+  const isFull = variant === 'full'
+  const traffic = routingTraffic(connections, `${service}-Verge`)
+  const selectedExit = routing.exit_names.includes(routing.selected_exit)
+    ? routing.selected_exit
+    : ''
+
+  const exitSelect = (
+    <TextField
+      select
+      size="small"
+      label="出口节点"
+      value={selectedExit}
+      disabled={busy || !routing.exit_names.length}
+      sx={{ flex: 1, minWidth: 0 }}
+      onChange={(event) => {
+        void save({ ...routing, selected_exit: event.target.value })
+      }}
+    >
+      {routing.exit_names.map((name) => (
+        <MenuItem key={name} value={name}>
+          {name}
+        </MenuItem>
+      ))}
+    </TextField>
+  )
+
+  const statusText = !routing.exit_names.length
+    ? '尚未配置出口，请先选择“配置出口”。'
+    : routing.enabled
+      ? '保护已开启；出口不可用时，专用请求将被阻断。'
+      : `专用分流已关闭，${service} 跟随当前订阅规则。出口配置仍然保留。`
+
+  const statBox = (label: string, value: string, accent?: string) => (
+    <Box
+      sx={{
+        flex: 1,
+        minWidth: 0,
+        p: 1,
+        borderRadius: 'var(--glass-radius-control)',
+        bgcolor: 'var(--glass-muted)',
+      }}
+    >
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 600,
+          fontVariantNumeric: 'tabular-nums',
+          color: accent,
+          overflowWrap: 'anywhere',
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  )
+
   return (
     <Box
       sx={{
-        px: 2,
-        py: 1.5,
-        mx: 2,
-        mt: 1.5,
-        flexShrink: 0,
+        p: isFull ? 2 : 1.5,
         bgcolor: 'var(--glass-bg-strong)',
         border: '1px solid var(--glass-edge)',
         borderRadius: 'var(--glass-radius-card)',
         boxShadow: 'var(--glass-card-shadow)',
       }}
     >
+      {isFull ? (
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+          <Avatar
+            variant="rounded"
+            sx={{
+              width: 40,
+              height: 40,
+              bgcolor: 'var(--glass-muted)',
+              color: 'primary.main',
+              fontWeight: 700,
+              border: '1px solid var(--glass-edge)',
+            }}
+          >
+            {service[0]}
+          </Avatar>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {service}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              策略组 {service}-Verge · {routing.exit_names.length} 个可选出口
+            </Typography>
+          </Box>
+          <Switch
+            checked={routing.enabled}
+            disabled={busy || !verge || !routing.exit_names.length}
+            onChange={(_, enabled) => {
+              void save({ ...routing, enabled })
+            }}
+          />
+        </Stack>
+      ) : (
+        <Stack
+          direction="row"
+          spacing={1.5}
+          useFlexGap
+          sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}
+        >
+          <FormControlLabel
+            label={`${service} 专用分流`}
+            control={
+              <Switch
+                checked={routing.enabled}
+                disabled={busy || !verge || !routing.exit_names.length}
+                onChange={(_, enabled) => {
+                  void save({ ...routing, enabled })
+                }}
+              />
+            }
+          />
+        </Stack>
+      )}
+
       <Stack
         direction="row"
-        spacing={1.5}
-        useFlexGap
-        sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}
+        spacing={1}
+        sx={{ alignItems: 'center', mt: isFull ? 0 : 1 }}
       >
-        <FormControlLabel
-          label={`${service} 专用分流`}
-          control={
-            <Switch
-              checked={routing.enabled}
-              disabled={busy || !verge || !routing.exit_names.length}
-              onChange={(_, enabled) => {
-                void save({ ...routing, enabled })
-              }}
-            />
-          }
-        />
-        <TextField
-          select
-          size="small"
-          label="专用出口"
-          value={
-            routing.exit_names.includes(routing.selected_exit)
-              ? routing.selected_exit
-              : ''
-          }
-          disabled={busy || !routing.exit_names.length}
-          sx={{ flex: '1 1 180px', minWidth: 0, maxWidth: 300 }}
-          onChange={(event) => {
-            void save({ ...routing, selected_exit: event.target.value })
-          }}
+        {exitSelect}
+        <Button
+          variant="outlined"
+          disabled={busy || !verge}
+          onClick={configure}
+          sx={{ flexShrink: 0 }}
         >
-          {routing.exit_names.map((name) => (
-            <MenuItem key={name} value={name}>
-              {name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Button disabled={busy || !verge} onClick={configure}>
           配置出口
         </Button>
       </Stack>
+
+      {isFull && (
+        <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+          {statBox('活动连接', `${traffic.count}`)}
+          {statBox(
+            '实时流量',
+            `↑${formatBytes(traffic.upload)} ↓${formatBytes(traffic.download)}`,
+          )}
+          {statBox(
+            '防泄漏',
+            routing.enabled ? '已保护' : '未开启',
+            routing.enabled ? 'success.main' : 'text.secondary',
+          )}
+        </Stack>
+      )}
+
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        {!routing.exit_names.length
-          ? '尚未配置出口，请先选择“配置出口”。'
-          : routing.enabled
-            ? '保护已开启；出口不可用时，专用请求将被阻断。'
-            : `专用分流已关闭，${service} 跟随当前订阅规则。出口配置仍然保留。`}
+        {statusText}
       </Typography>
+
       <Box
         component="details"
         sx={{ mt: 0.5, color: 'text.secondary', typography: 'body2' }}

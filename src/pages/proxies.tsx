@@ -221,8 +221,22 @@ const ProxyPage = () => {
           </Box>
         }
       >
-        <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
-        <ClaudeRoutingPanel mode={curMode ?? 'rule'} service="Codex" />
+        <Box
+          sx={{
+            mx: '10px',
+            mt: 1.5,
+            flexShrink: 0,
+            display: 'grid',
+            gap: 1.5,
+            gridTemplateColumns: {
+              xs: '1fr',
+              md: 'repeat(2, minmax(0, 1fr))',
+            },
+          }}
+        >
+          <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
+          <ClaudeRoutingPanel mode={curMode ?? 'rule'} service="Codex" />
+        </Box>
         <Box sx={{ flex: 1, minHeight: 0 }}>
           <ProxyGroups
             mode={curMode ?? 'rule'}

@@ -4,6 +4,7 @@
       "tabs": {
         "home": "ホーム",
         "proxies": "プロキシ",
+        "routing": "専用分流",
         "profiles": "プロファイル",
         "connections": "接続",
         "rules": "ルール",
