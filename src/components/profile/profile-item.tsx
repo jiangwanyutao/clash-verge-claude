@@ -639,7 +639,10 @@ const ProfileItemBase = (props: ProfileItemProps) => {
   })
 
   return (
-    <Box ref={setElement} sx={{ position: 'relative', borderRadius: '8px' }}>
+    <Box
+      ref={setElement}
+      sx={{ position: 'relative', borderRadius: 'var(--glass-radius-card)' }}
+    >
       <ProfileBox
         aria-selected={selected}
         onClick={(e) => {
