@@ -743,8 +743,8 @@ export const ConnectionTable = (props: Props) => {
     [startResize],
   )
 
-  const borderColor = theme.palette.divider
-  const headerBackground = theme.palette.background.paper
+  const borderColor = 'var(--glass-hairline)'
+  const headerBackground = 'var(--glass-bg-strong)'
   const textSecondary = theme.palette.text.secondary
 
   return (
@@ -757,6 +757,7 @@ export const ConnectionTable = (props: Props) => {
           minHeight: 0,
           position: 'relative',
           fontFamily: theme.typography.fontFamily,
+          fontVariantNumeric: 'tabular-nums',
         }}
       >
         <div
@@ -768,7 +769,9 @@ export const ConnectionTable = (props: Props) => {
             overflow: 'auto',
             WebkitOverflowScrolling: 'touch',
             overscrollBehavior: 'contain',
-            borderRadius: 8,
+            borderRadius: 'var(--glass-radius-card)',
+            background: 'var(--glass-bg)',
+            border: '1px solid var(--glass-edge)',
           }}
         >
           <div

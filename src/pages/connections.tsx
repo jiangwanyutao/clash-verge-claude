@@ -170,176 +170,190 @@ const ConnectionsPage = () => {
   const hasTableData = filterConn.length > 0
 
   return (
-    <BasePage
-      full
-      title={
-        <span style={{ whiteSpace: 'nowrap' }}>
-          {t('connections.page.title')}
-        </span>
-      }
-      contentStyle={{
+    <Box
+      sx={{
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        borderRadius: '8px',
-        minHeight: 0,
+        '& .base-container, & .base-container > section': {
+          backgroundColor: 'transparent !important',
+        },
       }}
-      header={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box sx={{ mx: 1 }}>
-            {t('shared.labels.downloaded')}:{' '}
-            {parseTraffic(traffic?.downTotal || 0)}
-          </Box>
-          <Box sx={{ mx: 1 }}>
-            {t('shared.labels.uploaded')}: {parseTraffic(traffic?.upTotal || 0)}
-          </Box>
-          <IconButton
-            color="inherit"
-            size="small"
-            onClick={() =>
-              setSetting((o) =>
-                o?.layout !== 'table'
-                  ? { ...o, layout: 'table' }
-                  : { ...o, layout: 'list' },
-              )
-            }
-          >
-            {isTableLayout ? (
-              <TableRowsRounded titleAccess={t('shared.actions.listView')} />
-            ) : (
-              <TableChartRounded titleAccess={t('shared.actions.tableView')} />
-            )}
-          </IconButton>
-          <Button size="small" variant="contained" onClick={onCloseAll}>
-            <span style={{ whiteSpace: 'nowrap' }}>
-              {t('shared.actions.closeAll')}
-            </span>
-          </Button>
-        </Box>
-      }
     >
-      <Box
-        sx={{
-          pt: 1,
-          mb: 0.5,
-          mx: '10px',
-          minHeight: '36px',
+      <BasePage
+        full
+        title={
+          <span style={{ whiteSpace: 'nowrap' }}>
+            {t('connections.page.title')}
+          </span>
+        }
+        contentStyle={{
+          height: '100%',
           display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          userSelect: 'text',
-          position: 'sticky',
-          top: 0,
-          zIndex: 2,
+          flexDirection: 'column',
+          overflow: 'hidden',
+          borderRadius: 'var(--glass-radius-card)',
+          minHeight: 0,
         }}
+        header={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ mx: 1, fontVariantNumeric: 'tabular-nums' }}>
+              {t('shared.labels.downloaded')}:{' '}
+              {parseTraffic(traffic?.downTotal || 0)}
+            </Box>
+            <Box sx={{ mx: 1, fontVariantNumeric: 'tabular-nums' }}>
+              {t('shared.labels.uploaded')}:{' '}
+              {parseTraffic(traffic?.upTotal || 0)}
+            </Box>
+            <IconButton
+              color="inherit"
+              size="small"
+              onClick={() =>
+                setSetting((o) =>
+                  o?.layout !== 'table'
+                    ? { ...o, layout: 'table' }
+                    : { ...o, layout: 'list' },
+                )
+              }
+            >
+              {isTableLayout ? (
+                <TableRowsRounded titleAccess={t('shared.actions.listView')} />
+              ) : (
+                <TableChartRounded
+                  titleAccess={t('shared.actions.tableView')}
+                />
+              )}
+            </IconButton>
+            <Button size="small" variant="contained" onClick={onCloseAll}>
+              <span style={{ whiteSpace: 'nowrap' }}>
+                {t('shared.actions.closeAll')}
+              </span>
+            </Button>
+          </Box>
+        }
       >
-        <ButtonGroup sx={{ mr: 1, flexBasis: 'content' }}>
-          <Button
-            size="small"
-            variant={connectionsType === 'active' ? 'contained' : 'outlined'}
-            onClick={() => selectConnectionsType('active')}
-          >
-            {t('connections.components.actions.active')}{' '}
-            {connections?.activeConnections.length}
-          </Button>
-          <Button
-            size="small"
-            variant={connectionsType === 'closed' ? 'contained' : 'outlined'}
-            onClick={() => selectConnectionsType('closed')}
-          >
-            {t('connections.components.actions.closed')}{' '}
-            {connections?.closedConnections.length}
-          </Button>
-        </ButtonGroup>
-        {!isTableLayout && (
-          <BaseStyledSelect
-            value={curOrderOpt}
-            onChange={(e) => setCurOrderOpt(e.target.value as OrderKey)}
-          >
-            {ORDER_OPTIONS.map((option) => (
-              <MenuItem key={option.id} value={option.id}>
-                <span style={{ fontSize: 14 }}>{t(option.labelKey)}</span>
-              </MenuItem>
-            ))}
-          </BaseStyledSelect>
-        )}
         <Box
           sx={{
-            flex: 1,
+            pt: 1,
+            mb: 0.5,
+            mx: '10px',
+            minHeight: '36px',
             display: 'flex',
             alignItems: 'center',
-            '& > *': {
-              flex: 1,
-            },
+            gap: 1,
+            userSelect: 'text',
+            position: 'sticky',
+            top: 0,
+            zIndex: 2,
           }}
         >
-          <BaseSearchBox onSearch={handleSearch} />
-        </Box>
-        {isTableLayout && hasTableData && (
-          <Tooltip title={t('connections.components.columnManager.title')}>
-            <IconButton
+          <ButtonGroup sx={{ mr: 1, flexBasis: 'content' }}>
+            <Button
               size="small"
-              aria-label={t('connections.components.columnManager.title')}
-              onClick={() => setIsColumnManagerOpen(true)}
-              sx={{ flex: '0 0 auto' }}
+              variant={connectionsType === 'active' ? 'contained' : 'outlined'}
+              onClick={() => selectConnectionsType('active')}
             >
-              <ViewColumnRounded fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-      </Box>
-
-      {!hasTableData ? (
-        <BaseEmpty />
-      ) : isTableLayout ? (
-        <ConnectionTable
-          connections={filterConn}
-          onShowDetail={showDetailById}
-          columnManagerOpen={isColumnManagerOpen}
-          onCloseColumnManager={() => setIsColumnManagerOpen(false)}
-        />
-      ) : (
-        <VirtualList
-          key={connectionsType}
-          count={displayRows.length}
-          estimateSize={56}
-          renderItem={(i) => (
-            <ConnectionRowItem
-              row={displayRows[i]}
-              closed={connectionsType === 'closed'}
-              onShowDetail={showDetailById}
-            />
+              {t('connections.components.actions.active')}{' '}
+              {connections?.activeConnections.length}
+            </Button>
+            <Button
+              size="small"
+              variant={connectionsType === 'closed' ? 'contained' : 'outlined'}
+              onClick={() => selectConnectionsType('closed')}
+            >
+              {t('connections.components.actions.closed')}{' '}
+              {connections?.closedConnections.length}
+            </Button>
+          </ButtonGroup>
+          {!isTableLayout && (
+            <BaseStyledSelect
+              value={curOrderOpt}
+              onChange={(e) => setCurOrderOpt(e.target.value as OrderKey)}
+            >
+              {ORDER_OPTIONS.map((option) => (
+                <MenuItem key={option.id} value={option.id}>
+                  <span style={{ fontSize: 14 }}>{t(option.labelKey)}</span>
+                </MenuItem>
+              ))}
+            </BaseStyledSelect>
           )}
-          style={{
-            flex: 1,
-            borderRadius: '8px',
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehavior: 'contain',
-          }}
-        />
-      )}
-      <ConnectionDetail ref={detailRef} />
-      <Zoom
-        in={connectionsType === 'closed' && filterConn.length > 0}
-        unmountOnExit
-      >
-        <Fab
-          size="medium"
-          variant="extended"
-          sx={{
-            position: 'absolute',
-            right: 16,
-            bottom: isTableLayout ? 70 : 16,
-          }}
-          color="primary"
-          onClick={() => clearClosedConnections()}
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              '& > *': {
+                flex: 1,
+              },
+            }}
+          >
+            <BaseSearchBox onSearch={handleSearch} />
+          </Box>
+          {isTableLayout && hasTableData && (
+            <Tooltip title={t('connections.components.columnManager.title')}>
+              <IconButton
+                size="small"
+                aria-label={t('connections.components.columnManager.title')}
+                onClick={() => setIsColumnManagerOpen(true)}
+                sx={{ flex: '0 0 auto' }}
+              >
+                <ViewColumnRounded fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+
+        {!hasTableData ? (
+          <BaseEmpty />
+        ) : isTableLayout ? (
+          <ConnectionTable
+            connections={filterConn}
+            onShowDetail={showDetailById}
+            columnManagerOpen={isColumnManagerOpen}
+            onCloseColumnManager={() => setIsColumnManagerOpen(false)}
+          />
+        ) : (
+          <VirtualList
+            key={connectionsType}
+            count={displayRows.length}
+            estimateSize={56}
+            renderItem={(i) => (
+              <ConnectionRowItem
+                row={displayRows[i]}
+                closed={connectionsType === 'closed'}
+                onShowDetail={showDetailById}
+              />
+            )}
+            style={{
+              flex: 1,
+              borderRadius: 'var(--glass-radius-card)',
+              background: 'var(--glass-bg)',
+              border: '1px solid var(--glass-edge)',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
+            }}
+          />
+        )}
+        <ConnectionDetail ref={detailRef} />
+        <Zoom
+          in={connectionsType === 'closed' && filterConn.length > 0}
+          unmountOnExit
         >
-          <DeleteForeverRounded sx={{ mr: 1 }} fontSize="small" />
-          {t('shared.actions.clear')}
-        </Fab>
-      </Zoom>
-    </BasePage>
+          <Fab
+            size="medium"
+            variant="extended"
+            sx={{
+              position: 'absolute',
+              right: 16,
+              bottom: isTableLayout ? 70 : 16,
+            }}
+            color="primary"
+            onClick={() => clearClosedConnections()}
+          >
+            <DeleteForeverRounded sx={{ mr: 1 }} fontSize="small" />
+            {t('shared.actions.clear')}
+          </Fab>
+        </Zoom>
+      </BasePage>
+    </Box>
   )
 }
 
