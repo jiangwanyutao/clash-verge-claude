@@ -102,6 +102,11 @@ const wrap = (Icon: ElementType) =>
     )
   }
 
+const wrapFilled = (Icon: ElementType) =>
+  function MuiFilledIcon(props: SvgIconProps) {
+    return <SvgIcon component={Icon} inheritViewBox {...props} />
+  }
+
 export const AccessTimeOutlined = wrap(LucideClock)
 export const AccessTimeRounded = wrap(LucideClock)
 export const Add = wrap(LucidePlus)
@@ -155,7 +160,7 @@ export const FeaturedPlayListRounded = wrap(LucideListChecks)
 export const FilterNone = wrap(LucideCopy)
 export const ForkRightOutlined = wrap(LucideSplit)
 export const FormatPaintRounded = wrap(LucidePaintbrush)
-export const GitHub = wrap(FaGithub)
+export const GitHub = wrapFilled(FaGithub)
 export const HelpOutlineRounded = wrap(LucideCircleQuestionMark)
 export const HelpOutlined = wrap(LucideCircleQuestionMark)
 export const HistoryEduOutlined = wrap(LucideScrollText)
@@ -213,7 +218,7 @@ export const SwapVertRounded = wrap(LucideArrowUpDown)
 export const SwitchAccessShortcutRounded = wrap(LucideRepeat)
 export const TableChartRounded = wrap(LucideTable2)
 export const TableRowsRounded = wrap(LucideRows3)
-export const Telegram = wrap(FaTelegram)
+export const Telegram = wrapFilled(FaTelegram)
 export const TextSnippetOutlined = wrap(LucideFileText)
 export const TroubleshootRounded = wrap(LucideActivity)
 export const UndoRounded = wrap(LucideUndo2)
