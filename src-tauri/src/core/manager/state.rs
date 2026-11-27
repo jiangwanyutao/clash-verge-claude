@@ -1,5 +1,6 @@
 #[cfg(test)]
 use super::claim_core_readiness_generation;
+use super::proxy_diagnostics::proxy_failure_summary;
 use super::{CoreManager, PROFILE_SELECTIONS_PENDING_COMMIT, RunningMode};
 use crate::utils::retry::{RetryError, RetryPolicy, retry};
 use crate::{
@@ -14,6 +15,7 @@ use clash_verge_logging::Type;
 use log::Level;
 use std::num::NonZeroUsize;
 use std::path::Path;
+use std::time::{Duration, Instant};
 use tauri_plugin_mihomo::MihomoExt as _;
 use tauri_plugin_shell::ShellExt as _;
 
@@ -250,12 +252,27 @@ impl CoreManager {
         // full stdout pipe before it ever creates the API socket.
         let core_readiness_generation = self.mark_core_ready();
         AsyncHandler::spawn(move || async move {
+            let mut last_diagnostics = std::collections::HashMap::new();
             while let Some(event) = rx.recv().await {
                 match event {
                     tauri_plugin_shell::process::CommandEvent::Stdout(line)
                     | tauri_plugin_shell::process::CommandEvent::Stderr(line) => {
                         let message = String::from_utf8_lossy_owned(line);
                         Logger::global().writer_sidecar_log(Level::Error, &message);
+                        if let Some((service, kind)) = proxy_failure_summary(&message) {
+                            let now = Instant::now();
+                            let last = last_diagnostics
+                                .entry((service, kind))
+                                .or_insert(now - Duration::from_secs(5));
+                            if now.duration_since(*last) >= Duration::from_secs(5) {
+                                logging!(
+                                    warn,
+                                    Type::Core,
+                                    "proxy connection failure: route={service} category={kind}; details in sidecar log"
+                                );
+                                *last = now;
+                            }
+                        }
                         CLASH_LOGGER.append_log(message);
                     }
                     tauri_plugin_shell::process::CommandEvent::Terminated(term) => {

@@ -1,6 +1,7 @@
 mod config;
 pub(crate) use config::ConfigUpdateGuard;
 mod lifecycle;
+mod proxy_diagnostics;
 mod state;
 
 use anyhow::Result;
