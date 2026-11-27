@@ -5,16 +5,18 @@ import {
 } from '@mui/icons-material'
 import type { BoxProps, SvgIconProps, TypographyProps } from '@mui/material'
 import { Box, Typography } from '@mui/material'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { LightweightTrafficErrorBoundary } from '@/components/shared/traffic-error-boundary'
+import { useConnectionData } from '@/hooks/use-connection-data'
 import { useMemoryData } from '@/hooks/use-memory-data'
 import { useTrafficData } from '@/hooks/use-traffic-data'
 import { useVerge } from '@/hooks/use-verge'
 import { useVisibility } from '@/hooks/use-visibility'
 import parseTraffic from '@/utils/parse-traffic'
 
+import { routingSpeed, type RoutingSpeed } from './routing-speed'
 import { TrafficGraph, type TrafficRef } from './traffic-graph'
 
 export const LayoutTraffic = () => {
@@ -26,6 +28,50 @@ export const LayoutTraffic = () => {
 
   const trafficRef = useRef<TrafficRef>(null)
   const pageVisible = useVisibility()
+  const routingEnabled = !!(
+    verge?.claude_routing?.enabled || verge?.codex_routing?.enabled
+  )
+  const {
+    response: { data: connections },
+  } = useConnectionData({ enabled: pageVisible && routingEnabled })
+  const latestRef = useRef<{ data: IConnectionsItem[]; at: number } | null>(
+    null,
+  )
+  const initialConnectionsRef = useRef(connections)
+  const [speeds, setSpeeds] = useState<RoutingSpeed | null>(null)
+
+  useEffect(() => {
+    if (connections !== initialConnectionsRef.current) {
+      latestRef.current = {
+        data: connections.activeConnections,
+        at: performance.now(),
+      }
+    }
+  }, [connections])
+
+  useEffect(() => {
+    let previous: typeof latestRef.current = null
+    const timer = window.setInterval(() => {
+      const current = latestRef.current
+      if (
+        !pageVisible ||
+        !routingEnabled ||
+        !current ||
+        performance.now() - current.at > 4000
+      ) {
+        previous = null
+        setSpeeds(null)
+        return
+      }
+      if (previous && current.at !== previous.at) {
+        setSpeeds(
+          routingSpeed(previous.data, current.data, current.at - previous.at),
+        )
+      }
+      previous = current
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [pageVisible, routingEnabled])
 
   const {
     response: { data: traffic },
@@ -142,6 +188,42 @@ export const LayoutTraffic = () => {
               <Typography {...unitStyle}>{inuseUnit}</Typography>
             </Box>
           )}
+          {(['Claude', 'Codex'] as const).map((service) => {
+            const routing =
+              service === 'Claude'
+                ? verge?.claude_routing
+                : verge?.codex_routing
+            const enabled = routing?.enabled
+            const speed = enabled && pageVisible ? speeds?.[service] : null
+            const format = (value: number) =>
+              `${parseTraffic(value).join(' ')}/s`
+            return (
+              <Box
+                key={service}
+                title={`当前出口：${routing?.selected_exit || '未配置'}。仅统计经过此专用分流组的活动连接；短连接及关闭时的尾流量可能未计入。`}
+                sx={{ borderTop: '1px solid var(--glass-hairline)', pt: 0.5 }}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {service} 专用{!enabled ? ' · 未启用' : ''}
+                </Typography>
+                {enabled && (
+                  <Typography
+                    variant="caption"
+                    component="div"
+                    data-numeric
+                    sx={{
+                      fontVariantNumeric: 'tabular-nums',
+                      whiteSpace: 'nowrap',
+                      fontSize: '0.65rem',
+                    }}
+                  >
+                    ↑ {speed ? format(speed.up) : '—'} {' · '} ↓{' '}
+                    {speed ? format(speed.down) : '—'}
+                  </Typography>
+                )}
+              </Box>
+            )
+          })}
         </Box>
       </Box>
     </LightweightTrafficErrorBoundary>
