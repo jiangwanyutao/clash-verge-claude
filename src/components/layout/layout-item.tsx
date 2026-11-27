@@ -1,5 +1,4 @@
 import {
-  alpha,
   ListItem,
   ListItemButton,
   ListItemIcon,
@@ -40,7 +39,7 @@ export const LayoutItem = (props: Props) => {
         selected={!!match}
         sx={[
           {
-            borderRadius: 2,
+            borderRadius: 'var(--glass-radius-control)',
             marginLeft: 1.25,
             paddingLeft: 1,
             paddingRight: 1,
@@ -48,20 +47,15 @@ export const LayoutItem = (props: Props) => {
             cursor: 'pointer',
             '& .MuiListItemText-primary': {
               color: 'text.primary',
-              fontWeight: '700',
+              fontWeight: '500',
             },
           },
-          ({ palette: { mode, primary } }) => {
-            const bgcolor =
-              mode === 'light'
-                ? alpha(primary.main, 0.15)
-                : alpha(primary.main, 0.35)
-            const color = mode === 'light' ? '#1f1f1f' : '#ffffff'
-            return {
-              '&.Mui-selected': { bgcolor },
-              '&.Mui-selected:hover': { bgcolor },
-              '&.Mui-selected .MuiListItemText-primary': { color },
-            }
+          {
+            '&.Mui-selected, &.Mui-selected:hover': {
+              bgcolor: 'var(--glass-bg-strong)',
+              boxShadow: 'var(--glass-card-shadow)',
+            },
+            '&.Mui-selected .MuiListItemIcon-root': { color: 'primary.main' },
           },
         ]}
         title={navCollapsed ? children : undefined}

@@ -128,10 +128,6 @@ const Layout = () => {
         square
         elevation={0}
         className={`${OS} layout${navCollapsed ? ' layout--nav-collapsed' : ''}`}
-        style={{
-          borderTopLeftRadius: '0px',
-          borderTopRightRadius: '0px',
-        }}
         onContextMenu={(e) => {
           if (
             OS === 'windows' &&
@@ -144,10 +140,59 @@ const Layout = () => {
           }
         }}
         sx={[
-          ({ palette }) => ({ bgcolor: palette.background.paper }),
+          ({ palette }) => ({
+            position: 'relative',
+            bgcolor: palette.background.default,
+            backgroundImage: 'var(--user-background-image)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundBlendMode: 'var(--background-blend-mode)',
+            borderRadius: 'var(--glass-radius-window)',
+            border: '1px solid var(--glass-edge)',
+            boxShadow: 'var(--glass-card-shadow)',
+            '& .the_titlebar': {
+              bgcolor: 'var(--glass-bg-strong)',
+              borderColor: 'var(--glass-hairline)',
+            },
+            '& .layout-content': {
+              gap: 1,
+              p: 1,
+              minHeight: 0,
+            },
+            '& .layout-content__left, & .layout-content__right': {
+              bgcolor: 'var(--glass-bg)',
+              border: '1px solid var(--glass-edge)',
+              borderRadius: 'var(--glass-radius-window)',
+              backdropFilter: 'var(--glass-blur-window)',
+              WebkitBackdropFilter: 'var(--glass-blur-window)',
+              overflow: 'hidden',
+              minWidth: 0,
+              '@supports not (backdrop-filter: blur(1px))': {
+                bgcolor: palette.background.paper,
+              },
+            },
+            '& .layout-content__left': {
+              flex: '0 0 200px',
+              bgcolor: 'var(--glass-bg-strong)',
+              '@supports not (backdrop-filter: blur(1px))': {
+                bgcolor: palette.background.paper,
+              },
+            },
+            '& .layout-content__right .the-content': {
+              top: 0,
+              right: 0,
+            },
+            '& .layout-content__left .the-traffic > div': {
+              mx: 1,
+              p: 1.5,
+              bgcolor: 'var(--glass-bg-strong)',
+              border: '1px solid var(--glass-edge)',
+              borderRadius: 'var(--glass-radius-card)',
+              boxShadow: 'var(--glass-card-shadow)',
+            },
+          }),
           OS === 'linux'
             ? {
-                borderRadius: '8px',
                 width: '100vw',
                 height: '100vh',
               }

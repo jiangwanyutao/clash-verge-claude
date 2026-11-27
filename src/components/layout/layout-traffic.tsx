@@ -61,7 +61,12 @@ export const LayoutTraffic = () => {
   }
   const valStyle: Pick<TypographyProps, 'component' | 'sx'> = {
     component: 'span',
-    sx: { flex: '1 1 56px', userSelect: 'none', textAlign: 'center' },
+    sx: {
+      flex: '1 1 56px',
+      userSelect: 'none',
+      textAlign: 'center',
+      fontVariantNumeric: 'tabular-nums',
+    },
   }
   const unitStyle: Pick<TypographyProps, 'component' | 'color' | 'sx'> = {
     component: 'span',
