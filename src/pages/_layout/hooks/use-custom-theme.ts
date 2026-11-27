@@ -7,8 +7,16 @@ import { Theme as TauriOsTheme } from '@tauri-apps/api/window'
 import { useEffect, useMemo } from 'react'
 
 import { useVerge } from '@/hooks/use-verge'
-import { defaultDarkTheme, defaultTheme } from '@/pages/_theme'
+import {
+  defaultDarkTheme,
+  defaultTheme,
+  glassBlur,
+  glassRadius,
+  glassTokens,
+} from '@/pages/_theme'
 import { useSetThemeMode, useThemeMode } from '@/services/states'
+
+import { createGlassComponents } from './glass-components'
 
 const CSS_INJECTION_SCOPE_ROOT = '[data-css-injection-root]'
 const CSS_INJECTION_SCOPE_LIMIT =
@@ -168,12 +176,14 @@ export const useCustomTheme = () => {
             default: dt.background_color,
           },
         },
+        shape: { borderRadius: glassRadius.control },
         shadows: Array(25).fill('none') as Shadows,
         typography: {
           fontFamily: setting.font_family
             ? `${setting.font_family}, ${dt.font_family}`
             : dt.font_family,
         },
+        components: createGlassComponents(),
       })
     } catch (e) {
       console.error('Error creating MUI theme, falling back to defaults:', e)
@@ -195,7 +205,9 @@ export const useCustomTheme = () => {
             default: dt.background_color,
           },
         },
+        shape: { borderRadius: glassRadius.control },
         typography: { fontFamily: dt.font_family },
+        components: createGlassComponents(),
       })
     }
 
@@ -240,6 +252,29 @@ export const useCustomTheme = () => {
         setting.background_opacity !== undefined
           ? String(setting.background_opacity)
           : '1',
+      )
+      const glass = mode === 'light' ? glassTokens.light : glassTokens.dark
+      rootEle.style.setProperty('--glass-window-bg', glass.windowSurface)
+      rootEle.style.setProperty('--glass-bg', glass.glass)
+      rootEle.style.setProperty('--glass-bg-strong', glass.glassStrong)
+      rootEle.style.setProperty('--glass-edge', glass.edge)
+      rootEle.style.setProperty('--glass-hairline', glass.hairline)
+      rootEle.style.setProperty('--glass-muted', glass.muted)
+      rootEle.style.setProperty('--glass-highlight', glass.highlight)
+      rootEle.style.setProperty('--glass-blur-window', glassBlur.window)
+      rootEle.style.setProperty('--glass-blur-card', glassBlur.card)
+      rootEle.style.setProperty(
+        '--glass-radius-window',
+        `${glassRadius.window}px`,
+      )
+      rootEle.style.setProperty('--glass-radius-card', `${glassRadius.card}px`)
+      rootEle.style.setProperty(
+        '--glass-radius-control',
+        `${glassRadius.control}px`,
+      )
+      rootEle.style.setProperty(
+        '--glass-card-shadow',
+        `0 8px 24px -12px rgba(10, 20, 45, 0.25), inset 0 1px 0 ${glass.highlight}`,
       )
       rootEle.setAttribute('data-css-injection-root', 'true')
     }
@@ -295,15 +330,42 @@ export const useCustomTheme = () => {
           border-color: var(--window-border-color) !important;
         }
 
-        /* 确保模态框和对话框也使用暗色主题 */
+        /* 模态框和对话框使用高不透明度玻璃 */
         .MuiDialog-paper {
-          background-color: ${mode === 'light' ? '#ffffff' : '#2E303D'} !important;
+          background-color: var(--glass-bg-strong) !important;
         }
 
         /* 移除可能的白色点或线条 */
         * {
           outline: none !important;
           box-shadow: none !important;
+        }
+
+        /* 玻璃卡片与浮层保留顶部高光和柔和投影，选择器权重高于上面的 * 规则 */
+        .MuiCard-root.MuiPaper-root,
+        .MuiDialog-paper.MuiPaper-root,
+        .MuiMenu-paper.MuiPaper-root,
+        .MuiPopover-paper.MuiPaper-root {
+          box-shadow: var(--glass-card-shadow) !important;
+        }
+
+        /* 数字使用等宽数字，避免速度/延迟跳动 */
+        .MuiChip-label,
+        .MuiTypography-root[data-numeric],
+        [data-numeric] {
+          font-variant-numeric: tabular-nums;
+        }
+
+        /* 不支持 backdrop-filter 的环境（部分 Linux WebKitGTK）回退为不透明玻璃色 */
+        @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+          .MuiCard-root,
+          .MuiDialog-paper,
+          .MuiMenu-paper,
+          .MuiPopover-paper,
+          .MuiDrawer-paper,
+          .MuiTooltip-tooltip {
+            background-color: ${mode === 'light' ? '#F8FAFD' : '#232834'} !important;
+          }
         }
       `
 
