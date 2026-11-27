@@ -1,13 +1,13 @@
-import {
-  ArrowDownwardRounded,
-  ArrowUpwardRounded,
-  MemoryRounded,
-} from '@mui/icons-material'
 import type { BoxProps, SvgIconProps, TypographyProps } from '@mui/material'
 import { Box, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ArrowDownwardRounded,
+  ArrowUpwardRounded,
+  MemoryRounded,
+} from '@/components/shared/lucide-icons'
 import { LightweightTrafficErrorBoundary } from '@/components/shared/traffic-error-boundary'
 import { useConnectionData } from '@/hooks/use-connection-data'
 import { useMemoryData } from '@/hooks/use-memory-data'
@@ -126,134 +126,179 @@ export const LayoutTraffic = () => {
     },
   }
 
+  const cardSx = {
+    p: 1.5,
+    bgcolor: 'var(--glass-bg-strong)',
+    border: '1px solid var(--glass-edge)',
+    borderRadius: 'var(--glass-radius-card)',
+    boxShadow: 'var(--glass-card-shadow)',
+  }
+
   return (
     <LightweightTrafficErrorBoundary>
-      <Box sx={{ position: 'relative' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 0.5,
-          }}
-        >
-          <Typography variant="caption" color="text.secondary">
-            实时流量
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                bgcolor: connected ? 'success.main' : 'grey.500',
-              }}
-            />
-            <Typography
-              variant="caption"
-              sx={{ color: connected ? 'success.main' : 'text.secondary' }}
+      <Box
+        className="glass-stagger"
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Box sx={cardSx}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 0.5,
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              实时流量
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box
+                className={connected ? 'glass-pulse' : undefined}
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  bgcolor: connected ? 'success.main' : 'grey.500',
+                  color: connected ? 'success.main' : 'grey.500',
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{ color: connected ? 'success.main' : 'text.secondary' }}
+              >
+                {connected ? '已连接' : '未连接'}
+              </Typography>
+            </Box>
+          </Box>
+          {trafficGraph && pageVisible && (
+            <div
+              style={{ width: '100%', height: 60, marginBottom: 6 }}
+              onClick={trafficRef.current?.toggleStyle}
             >
-              {connected ? '已连接' : '未连接'}
-            </Typography>
-          </Box>
-        </Box>
-        {trafficGraph && pageVisible && (
-          <div
-            style={{ width: '100%', height: 60, marginBottom: 6 }}
-            onClick={trafficRef.current?.toggleStyle}
-          >
-            <TrafficGraph ref={trafficRef} />
-          </div>
-        )}
+              <TrafficGraph ref={trafficRef} />
+            </div>
+          )}
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-          <Box
-            title={`${t('home.components.traffic.metrics.uploadSpeed')}`}
-            {...boxStyle}
-            sx={{
-              ...boxStyle.sx,
-            }}
-          >
-            <ArrowUpwardRounded
-              {...iconStyle}
-              color={(traffic?.up || 0) > 0 ? 'secondary' : 'disabled'}
-            />
-            <Typography {...valStyle} color="secondary">
-              {up}
-            </Typography>
-            <Typography {...unitStyle}>{upUnit}/s</Typography>
-          </Box>
-
-          <Box
-            title={`${t('home.components.traffic.metrics.downloadSpeed')}`}
-            {...boxStyle}
-            sx={{
-              ...boxStyle.sx,
-            }}
-          >
-            <ArrowDownwardRounded
-              {...iconStyle}
-              color={(traffic?.down || 0) > 0 ? 'primary' : 'disabled'}
-            />
-            <Typography {...valStyle} color="primary">
-              {down}
-            </Typography>
-            <Typography {...unitStyle}>{downUnit}/s</Typography>
-          </Box>
-
-          {displayMemory && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
             <Box
-              title={`${t('home.components.traffic.metrics.memoryUsage')} `}
+              title={`${t('home.components.traffic.metrics.uploadSpeed')}`}
               {...boxStyle}
               sx={{
                 ...boxStyle.sx,
-                cursor: 'auto',
               }}
-              color={'disabled'}
-              onClick={async () => {}}
             >
-              <MemoryRounded {...iconStyle} />
-              <Typography {...valStyle}>{inuse}</Typography>
-              <Typography {...unitStyle}>{inuseUnit}</Typography>
+              <ArrowUpwardRounded
+                {...iconStyle}
+                color={(traffic?.up || 0) > 0 ? 'secondary' : 'disabled'}
+              />
+              <Typography {...valStyle} color="secondary">
+                {up}
+              </Typography>
+              <Typography {...unitStyle}>{upUnit}/s</Typography>
             </Box>
-          )}
-          {(['Claude', 'Codex'] as const).map((service) => {
-            const routing =
-              service === 'Claude'
-                ? verge?.claude_routing
-                : verge?.codex_routing
-            const enabled = routing?.enabled
-            const speed = enabled && pageVisible ? speeds?.[service] : null
-            const format = (value: number) =>
-              `${parseTraffic(value).join(' ')}/s`
-            return (
+
+            <Box
+              title={`${t('home.components.traffic.metrics.downloadSpeed')}`}
+              {...boxStyle}
+              sx={{
+                ...boxStyle.sx,
+              }}
+            >
+              <ArrowDownwardRounded
+                {...iconStyle}
+                color={(traffic?.down || 0) > 0 ? 'primary' : 'disabled'}
+              />
+              <Typography {...valStyle} color="primary">
+                {down}
+              </Typography>
+              <Typography {...unitStyle}>{downUnit}/s</Typography>
+            </Box>
+
+            {displayMemory && (
               <Box
-                key={service}
-                title={`当前出口：${routing?.selected_exit || '未配置'}。仅统计经过此专用分流组的活动连接；短连接及关闭时的尾流量可能未计入。`}
-                sx={{ borderTop: '1px solid var(--glass-hairline)', pt: 0.5 }}
+                title={`${t('home.components.traffic.metrics.memoryUsage')} `}
+                {...boxStyle}
+                sx={{
+                  ...boxStyle.sx,
+                  cursor: 'auto',
+                }}
+                color={'disabled'}
+                onClick={async () => {}}
+              >
+                <MemoryRounded {...iconStyle} />
+                <Typography {...valStyle}>{inuse}</Typography>
+                <Typography {...unitStyle}>{inuseUnit}</Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+
+        {(['Claude', 'Codex'] as const).map((service) => {
+          const routing =
+            service === 'Claude' ? verge?.claude_routing : verge?.codex_routing
+          const enabled = routing?.enabled
+          const speed = enabled && pageVisible ? speeds?.[service] : null
+          const format = (value: number) => `${parseTraffic(value).join(' ')}/s`
+          return (
+            <Box
+              key={service}
+              title={`当前出口：${routing?.selected_exit || '未配置'}。仅统计经过此专用分流组的活动连接；短连接及关闭时的尾流量可能未计入。`}
+              sx={cardSx}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 0.5,
+                }}
               >
                 <Typography variant="caption" color="text.secondary">
-                  {service} 专用{!enabled ? ' · 未启用' : ''}
+                  {service} 专用
                 </Typography>
-                {enabled && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box
+                    className={enabled ? 'glass-pulse' : undefined}
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: enabled ? 'success.main' : 'grey.500',
+                      color: enabled ? 'success.main' : 'grey.500',
+                    }}
+                  />
                   <Typography
                     variant="caption"
-                    component="div"
-                    data-numeric
                     sx={{
-                      fontVariantNumeric: 'tabular-nums',
-                      whiteSpace: 'nowrap',
-                      fontSize: '0.65rem',
+                      color: enabled ? 'success.main' : 'text.secondary',
                     }}
                   >
-                    ↑ {speed ? format(speed.up) : '—'} {' · '} ↓{' '}
-                    {speed ? format(speed.down) : '—'}
+                    {enabled ? '已启用' : '未启用'}
                   </Typography>
-                )}
+                </Box>
               </Box>
-            )
-          })}
-        </Box>
+              <Typography
+                variant="caption"
+                component="div"
+                data-numeric
+                sx={{
+                  fontVariantNumeric: 'tabular-nums',
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.7rem',
+                }}
+              >
+                ↑ {speed ? format(speed.up) : '—'} {' · '} ↓{' '}
+                {speed ? format(speed.down) : '—'}
+              </Typography>
+            </Box>
+          )
+        })}
       </Box>
     </LightweightTrafficErrorBoundary>
   )

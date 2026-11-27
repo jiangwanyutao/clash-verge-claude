@@ -1,8 +1,8 @@
-import { DeleteRounded } from '@mui/icons-material'
 import { alpha, Box, IconButton, styled } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { DeleteRounded } from '@/components/shared/lucide-icons'
 import { parseHotkey } from '@/utils/parse-hotkey'
 
 const KeyWrapper = styled('div')(({ theme }) => ({

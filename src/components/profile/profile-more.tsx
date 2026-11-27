@@ -1,4 +1,3 @@
-import { FeaturedPlayListRounded } from '@mui/icons-material'
 import {
   Box,
   Badge,
@@ -13,6 +12,7 @@ import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EditorViewer } from '@/components/profile/editor-viewer'
+import { FeaturedPlayListRounded } from '@/components/shared/lucide-icons'
 import { useEditorDocument } from '@/hooks/use-editor-document'
 import { viewProfile, readProfileFile, saveProfileFile } from '@/services/cmds'
 import { mutate } from '@/services/mutate'

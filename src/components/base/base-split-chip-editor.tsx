@@ -1,4 +1,3 @@
-import { CodeRounded, ViewModuleRounded } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -12,6 +11,11 @@ import {
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import {
+  CodeRounded,
+  ViewModuleRounded,
+} from '@/components/shared/lucide-icons'
 
 type BaseSplitChipEditorMode = 'visual' | 'advanced'
 

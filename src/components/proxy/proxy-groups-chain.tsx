@@ -1,5 +1,4 @@
 import { DragDropProvider } from '@dnd-kit/react'
-import { ExpandMoreRounded } from '@mui/icons-material'
 import {
   Alert,
   Box,
@@ -22,6 +21,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ExpandMoreRounded } from '@/components/shared/lucide-icons'
 import { useProxiesData } from '@/providers/app-data-context'
 import { updateProxyChainConfigInRuntime } from '@/services/cmds'
 import { mutate } from '@/services/mutate'

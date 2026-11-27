@@ -1,8 +1,3 @@
-import {
-  PlayCircleOutlineRounded,
-  PauseCircleOutlineRounded,
-  SwapVertRounded,
-} from '@mui/icons-material'
 import { Box, Button, ButtonGroup, IconButton } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +11,11 @@ import {
   type VirtualListHandle,
 } from '@/components/base'
 import LogItem from '@/components/log/log-item'
+import {
+  PlayCircleOutlineRounded,
+  PauseCircleOutlineRounded,
+  SwapVertRounded,
+} from '@/components/shared/lucide-icons'
 import { useClashLog } from '@/hooks/use-clash-log'
 import { useLogData } from '@/hooks/use-log-data'
 

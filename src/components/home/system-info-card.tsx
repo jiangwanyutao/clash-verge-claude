@@ -1,3 +1,9 @@
+import { Typography, Stack, Divider, Chip, IconButton } from '@mui/material'
+import { useLockFn } from 'ahooks'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
+
 import {
   InfoOutlined,
   SettingsOutlined,
@@ -5,13 +11,7 @@ import {
   DnsOutlined,
   ExtensionOutlined,
   PauseCircleOutlined,
-} from '@mui/icons-material'
-import { Typography, Stack, Divider, Chip, IconButton } from '@mui/material'
-import { useLockFn } from 'ahooks'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
-
+} from '@/components/shared/lucide-icons'
 import { useServiceInstaller } from '@/hooks/use-service-installer'
 import { useSystemState } from '@/hooks/use-system-state'
 import {

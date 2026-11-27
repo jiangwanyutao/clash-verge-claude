@@ -1,10 +1,10 @@
-import { Delete as DeleteIcon } from '@mui/icons-material'
 import { Box, Button, Divider, List, ListItem, TextField } from '@mui/material'
 import { useLockFn, useRequest } from 'ahooks'
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, Switch } from '@/components/base'
+import { Delete as DeleteIcon } from '@/components/shared/lucide-icons'
 import { useClash } from '@/hooks/use-clash'
 import { restartCore } from '@/services/cmds'
 import { mutate } from '@/services/mutate'

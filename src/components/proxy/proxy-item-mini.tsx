@@ -1,8 +1,8 @@
-import { CheckCircleOutlineRounded } from '@mui/icons-material'
 import { alpha, Box, ListItemButton, styled, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 import { BaseLoading } from '@/components/base'
+import { CheckCircleOutlineRounded } from '@/components/shared/lucide-icons'
 import { useProxyDelayState } from '@/hooks/use-proxy-delay-state'
 import delayManager from '@/services/delay'
 import {

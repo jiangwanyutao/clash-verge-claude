@@ -6,17 +6,6 @@ import {
 } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import {
-  CheckBoxOutlineBlankRounded,
-  CheckBoxRounded,
-  ClearRounded,
-  ContentPasteRounded,
-  DeleteRounded,
-  IndeterminateCheckBoxRounded,
-  LocalFireDepartmentRounded,
-  RefreshRounded,
-  TextSnippetOutlined,
-} from '@mui/icons-material'
-import {
   Alert,
   Box,
   Button,
@@ -47,6 +36,17 @@ import {
   type ProfileViewerRef,
 } from '@/components/profile/profile-viewer'
 import { ConfigViewer } from '@/components/setting/mods/config-viewer'
+import {
+  CheckBoxOutlineBlankRounded,
+  CheckBoxRounded,
+  ClearRounded,
+  ContentPasteRounded,
+  DeleteRounded,
+  IndeterminateCheckBoxRounded,
+  LocalFireDepartmentRounded,
+  RefreshRounded,
+  TextSnippetOutlined,
+} from '@/components/shared/lucide-icons'
 import { fetchProfilesIntoCache, useProfiles } from '@/hooks/use-profiles'
 import {
   createProfile,

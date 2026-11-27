@@ -1,11 +1,12 @@
+import { Box, Typography, Button, Alert, Collapse } from '@mui/material'
+import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+
 import {
   ErrorOutlineRounded,
   RefreshRounded,
   BugReportRounded,
-} from '@mui/icons-material'
-import { Box, Typography, Button, Alert, Collapse } from '@mui/material'
-import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
+} from '@/components/shared/lucide-icons'
 
 interface Props {
   children: ReactNode

@@ -5,7 +5,6 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
-import { DragIndicatorRounded } from '@mui/icons-material'
 import {
   Button,
   Checkbox,
@@ -20,6 +19,8 @@ import {
 } from '@mui/material'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { DragIndicatorRounded } from '@/components/shared/lucide-icons'
 
 const columnPointerSensor = PointerSensor.configure({
   activationConstraints: () => undefined,

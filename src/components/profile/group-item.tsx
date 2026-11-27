@@ -1,4 +1,3 @@
-import { DeleteForeverRounded, UndoRounded } from '@mui/icons-material'
 import {
   Box,
   IconButton,
@@ -8,6 +7,10 @@ import {
   styled,
 } from '@mui/material'
 
+import {
+  DeleteForeverRounded,
+  UndoRounded,
+} from '@/components/shared/lucide-icons'
 import { useIconCache } from '@/hooks/use-icon-cache'
 interface Props {
   type: 'prepend' | 'original' | 'delete' | 'append'

@@ -349,6 +349,78 @@ export const useCustomTheme = () => {
           box-shadow: var(--glass-card-shadow) !important;
         }
 
+        /* 玻璃开关：旋钮投影与轨道内阴影，选择器权重高于上面的 * 规则 */
+        .MuiSwitch-thumb {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        }
+        .MuiSwitch-track {
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        /* 玻璃微动效：卡片入场 stagger 与状态点 pulse */
+        @keyframes glass-in {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+        @keyframes glass-ping {
+          0% {
+            transform: scale(0.6);
+            opacity: 0.45;
+          }
+          100% {
+            transform: scale(2.2);
+            opacity: 0;
+          }
+        }
+        .glass-stagger > * {
+          animation: glass-in 0.4s ease-out both;
+        }
+        .glass-stagger > *:nth-child(2) {
+          animation-delay: 0.05s;
+        }
+        .glass-stagger > *:nth-child(3) {
+          animation-delay: 0.1s;
+        }
+        .glass-stagger > *:nth-child(4) {
+          animation-delay: 0.15s;
+        }
+        .glass-stagger > *:nth-child(5) {
+          animation-delay: 0.2s;
+        }
+        .glass-stagger > *:nth-child(6) {
+          animation-delay: 0.25s;
+        }
+        .glass-stagger > *:nth-child(n + 7) {
+          animation-delay: 0.3s;
+        }
+        .glass-pulse {
+          position: relative;
+        }
+        .glass-pulse::after {
+          content: '';
+          position: absolute;
+          inset: -3px;
+          border-radius: 999px;
+          background: currentColor;
+          opacity: 0.35;
+          animation: glass-ping 2s ease-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .glass-stagger > *,
+          .glass-pulse::after {
+            animation: none;
+          }
+          .glass-pulse::after {
+            opacity: 0;
+          }
+        }
+
         /* 数字使用等宽数字，避免速度/延迟跳动 */
         .MuiChip-label,
         .MuiTypography-root[data-numeric],

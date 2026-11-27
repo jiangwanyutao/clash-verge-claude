@@ -1,10 +1,4 @@
 import {
-  DeleteForeverRounded,
-  TableChartRounded,
-  TableRowsRounded,
-  ViewColumnRounded,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   ButtonGroup,
@@ -37,6 +31,12 @@ import {
   useConnectionRowViews,
 } from '@/components/connection/connection-row-view'
 import { ConnectionTable } from '@/components/connection/connection-table'
+import {
+  DeleteForeverRounded,
+  TableChartRounded,
+  TableRowsRounded,
+  ViewColumnRounded,
+} from '@/components/shared/lucide-icons'
 import { useConnectionData } from '@/hooks/use-connection-data'
 import { useConnectionSetting } from '@/hooks/use-connection-setting'
 import { useTrafficData } from '@/hooks/use-traffic-data'

@@ -1,8 +1,8 @@
-import { InboxRounded } from '@mui/icons-material'
 import { alpha, Box, Typography } from '@mui/material'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { InboxRounded } from '@/components/shared/lucide-icons'
 import type { TranslationKey } from '@/types/generated/i18n-keys'
 
 interface Props {

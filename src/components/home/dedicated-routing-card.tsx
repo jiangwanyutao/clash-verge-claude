@@ -1,8 +1,9 @@
-import { NetworkCheckRounded } from '@mui/icons-material'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { delayProxyByName } from 'tauri-plugin-mihomo-api'
 
+import { NetworkCheckRounded } from '@/components/shared/lucide-icons'
+import { ServiceBrandIcon } from '@/components/shared/service-brand-icon'
 import { useVerge } from '@/hooks/use-verge'
 
 import { EnhancedCard } from './enhanced-card'
@@ -12,7 +13,7 @@ function RoutingRow({
   enabled,
   exit,
 }: {
-  name: string
+  name: 'Claude' | 'Codex'
   enabled: boolean
   exit: string
 }) {
@@ -40,34 +41,40 @@ function RoutingRow({
         mb: 1,
         bgcolor: 'var(--glass-muted)',
         borderRadius: 'var(--glass-radius-control)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.25,
       }}
     >
-      <Stack
-        direction="row"
-        sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-        spacing={1}
-      >
-        <Typography variant="subtitle2">
-          {name} · {enabled ? '已开启' : '未开启'}
-        </Typography>
-        <Button
-          size="small"
-          disabled={!enabled || busy}
-          onClick={() => void check()}
+      <ServiceBrandIcon service={name} size={32} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Stack
+          direction="row"
+          sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          spacing={1}
         >
-          {busy ? '检测中' : '检测'}
-        </Button>
-      </Stack>
-      <Typography variant="body2" color="text.secondary">
-        当前出口：{exit || '未配置'}
-      </Typography>
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ fontVariantNumeric: 'tabular-nums' }}
-      >
-        测试地址延迟：{enabled ? result : '未检测'} · 出口 IP：暂不支持
-      </Typography>
+          <Typography variant="subtitle2">
+            {name} 专用 · {enabled ? '已开启' : '未开启'}
+          </Typography>
+          <Button
+            size="small"
+            disabled={!enabled || busy}
+            onClick={() => void check()}
+          >
+            {busy ? '检测中' : '检测'}
+          </Button>
+        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          当前出口：{exit || '未配置'}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ fontVariantNumeric: 'tabular-nums' }}
+        >
+          测试地址延迟：{enabled ? result : '未检测'} · 出口 IP：暂不支持
+        </Typography>
+      </Box>
     </Box>
   )
 }

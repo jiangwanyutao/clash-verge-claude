@@ -1,4 +1,3 @@
-import { Close, CropSquare, FilterNone, Minimize } from '@mui/icons-material'
 import { Box, IconButton } from '@mui/material'
 import {
   forwardRef,
@@ -7,6 +6,12 @@ import {
   useImperativeHandle,
 } from 'react'
 
+import {
+  Close,
+  CropSquare,
+  FilterNone,
+  Minimize,
+} from '@/components/shared/lucide-icons'
 import { useWindowControls } from '@/hooks/use-window'
 import getSystem from '@/utils/get-system'
 

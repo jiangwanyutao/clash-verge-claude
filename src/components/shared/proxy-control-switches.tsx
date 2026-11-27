@@ -1,10 +1,3 @@
-import {
-  DeleteForeverRounded,
-  PauseCircleOutlineRounded,
-  PlayCircleOutlineRounded,
-  SettingsRounded,
-  WarningRounded,
-} from '@mui/icons-material'
 import { Box, Typography, alpha, useTheme } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { useRef, useState } from 'react'
@@ -13,6 +6,13 @@ import { useTranslation } from 'react-i18next'
 import { type DialogRef, Switch, TooltipIcon } from '@/components/base'
 import { SysproxyViewer } from '@/components/setting/mods/sysproxy-viewer'
 import { TunViewer } from '@/components/setting/mods/tun-viewer'
+import {
+  DeleteForeverRounded,
+  PauseCircleOutlineRounded,
+  PlayCircleOutlineRounded,
+  SettingsRounded,
+  WarningRounded,
+} from '@/components/shared/lucide-icons'
 import { useServiceUninstaller } from '@/hooks/use-service-uninstaller'
 import { useSystemProxyState } from '@/hooks/use-system-proxy-state'
 import { useSystemState } from '@/hooks/use-system-state'

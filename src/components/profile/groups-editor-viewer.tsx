@@ -1,9 +1,5 @@
 import { arrayMove } from '@dnd-kit/helpers'
 import {
-  VerticalAlignBottomRounded,
-  VerticalAlignTopRounded,
-} from '@mui/icons-material'
-import {
   Autocomplete,
   Box,
   Button,
@@ -37,6 +33,10 @@ import { useTranslation } from 'react-i18next'
 
 import { BaseSearchBox, MonacoEditor, Switch } from '@/components/base'
 import { GroupItem } from '@/components/profile/group-item'
+import {
+  VerticalAlignBottomRounded,
+  VerticalAlignTopRounded,
+} from '@/components/shared/lucide-icons'
 import {
   getNetworkInterfaces,
   readProfileFile,

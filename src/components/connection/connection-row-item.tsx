@@ -1,9 +1,10 @@
-import { CloseRounded } from '@mui/icons-material'
 import { IconButton } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { memo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { closeConnection } from 'tauri-plugin-mihomo-api'
+
+import { CloseRounded } from '@/components/shared/lucide-icons'
 
 import { RelativeTime } from './connection-relative-time'
 import type { ConnectionRowView } from './connection-row-view'

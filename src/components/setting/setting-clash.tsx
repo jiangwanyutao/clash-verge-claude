@@ -1,4 +1,3 @@
-import { LanRounded, SettingsRounded } from '@mui/icons-material'
 import { MenuItem, Select, TextField, Typography } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { useRef, useState } from 'react'
@@ -6,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { updateGeo, type LogLevel } from 'tauri-plugin-mihomo-api'
 
 import { BaseDialog, DialogRef, Switch, TooltipIcon } from '@/components/base'
+import { LanRounded, SettingsRounded } from '@/components/shared/lucide-icons'
 import { useClash } from '@/hooks/use-clash'
 import { useClashLog } from '@/hooks/use-clash-log'
 import { useDisplayedMixedPort } from '@/hooks/use-displayed-mixed-port'

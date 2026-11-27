@@ -1,8 +1,8 @@
-import { DeveloperBoardOutlined } from '@mui/icons-material'
 import { Divider, Stack, Typography } from '@mui/material'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { DeveloperBoardOutlined } from '@/components/shared/lucide-icons'
 import { useClash } from '@/hooks/use-clash'
 import { useDisplayedMixedPort } from '@/hooks/use-displayed-mixed-port'
 import { useAppUptime } from '@/hooks/use-system-state'

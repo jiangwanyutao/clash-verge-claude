@@ -1,7 +1,3 @@
-import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
-import DownloadRounded from '@mui/icons-material/DownloadRounded'
-import RefreshRounded from '@mui/icons-material/RefreshRounded'
-import RestoreRounded from '@mui/icons-material/RestoreRounded'
 import {
   Box,
   Button,
@@ -24,6 +20,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, BaseLoadingOverlay } from '@/components/base'
+import { RestoreRounded } from '@/components/shared/lucide-icons'
+import { RefreshRounded } from '@/components/shared/lucide-icons'
+import { DownloadRounded } from '@/components/shared/lucide-icons'
+import { DeleteOutlined } from '@/components/shared/lucide-icons'
 import { useVerge } from '@/hooks/use-verge'
 import {
   deleteLocalBackup,

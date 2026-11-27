@@ -1,10 +1,10 @@
-import { ContentCopyRounded } from '@mui/icons-material'
 import { Button, Input, MenuItem, Select } from '@mui/material'
 import { open } from '@tauri-apps/plugin-dialog'
 import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DialogRef, TooltipIcon } from '@/components/base'
+import { ContentCopyRounded } from '@/components/shared/lucide-icons'
 import { useVerge } from '@/hooks/use-verge'
 import { navigationItems } from '@/pages/_navigation-meta'
 import { copyClashEnv } from '@/services/cmds'

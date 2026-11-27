@@ -7,14 +7,6 @@ import {
 } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
 import {
-  ArrowDownward,
-  Delete as DeleteIcon,
-  DragIndicator,
-  Link,
-  LinkOff,
-  WarningRounded,
-} from '@mui/icons-material'
-import {
   Alert,
   Box,
   Button,
@@ -41,6 +33,14 @@ import {
 } from 'tauri-plugin-mihomo-api'
 
 import { TooltipIcon } from '@/components/base'
+import {
+  ArrowDownward,
+  Delete as DeleteIcon,
+  DragIndicator,
+  Link,
+  LinkOff,
+  WarningRounded,
+} from '@/components/shared/lucide-icons'
 import { useRuntimeConfig } from '@/hooks/use-clash'
 import { useRecordSelection } from '@/hooks/use-record-selection'
 import { useAppRefreshers, useProxiesData } from '@/providers/app-data-context'

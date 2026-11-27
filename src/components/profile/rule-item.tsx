@@ -1,10 +1,4 @@
 import {
-  DeleteForeverRounded,
-  UndoRounded,
-  VerticalAlignBottomRounded,
-  VerticalAlignTopRounded,
-} from '@mui/icons-material'
-import {
   Box,
   IconButton,
   ListItem,
@@ -12,6 +6,13 @@ import {
   alpha,
   styled,
 } from '@mui/material'
+
+import {
+  DeleteForeverRounded,
+  UndoRounded,
+  VerticalAlignBottomRounded,
+  VerticalAlignTopRounded,
+} from '@/components/shared/lucide-icons'
 
 interface Props {
   type: 'prepend' | 'original' | 'delete' | 'append'

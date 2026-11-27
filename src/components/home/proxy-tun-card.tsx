@@ -1,10 +1,4 @@
 import {
-  ComputerRounded,
-  TroubleshootRounded,
-  HelpOutlineRounded,
-  SvgIconComponent,
-} from '@mui/icons-material'
-import {
   Box,
   Typography,
   Stack,
@@ -13,10 +7,16 @@ import {
   alpha,
   useTheme,
   Fade,
+  type SvgIconProps,
 } from '@mui/material'
-import { useState, useMemo, memo, FC } from 'react'
+import { useState, useMemo, memo, FC, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ComputerRounded,
+  TroubleshootRounded,
+  HelpOutlineRounded,
+} from '@/components/shared/lucide-icons'
 import ProxyControlSwitches from '@/components/shared/proxy-control-switches'
 import { useSystemProxyState } from '@/hooks/use-system-proxy-state'
 import { useSystemState } from '@/hooks/use-system-state'
@@ -28,7 +28,7 @@ const LOCAL_STORAGE_TAB_KEY = 'clash-verge-proxy-active-tab'
 interface TabButtonProps {
   isActive: boolean
   onClick: () => void
-  icon: SvgIconComponent
+  icon: ComponentType<SvgIconProps>
   label: string
   hasIndicator?: boolean
 }

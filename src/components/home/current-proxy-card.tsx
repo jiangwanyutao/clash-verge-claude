@@ -1,19 +1,5 @@
 /* eslint-disable @eslint-react/set-state-in-effect */
 import {
-  AccessTimeRounded,
-  ArrowDropDown,
-  ChevronRight,
-  NetworkCheckRounded,
-  WifiOff as SignalError,
-  SignalWifi3Bar as SignalGood,
-  SignalWifi2Bar as SignalMedium,
-  SignalWifi0Bar as SignalNone,
-  SignalWifi4Bar as SignalStrong,
-  SignalWifi1Bar as SignalWeak,
-  SortByAlphaRounded,
-  SortRounded,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   ButtonBase,
@@ -37,6 +23,20 @@ import { useNavigate } from 'react-router'
 
 import { EnhancedCard } from '@/components/home/enhanced-card'
 import type { ProxySortType } from '@/components/proxy/use-filter-sort'
+import {
+  AccessTimeRounded,
+  ArrowDropDown,
+  ChevronRight,
+  NetworkCheckRounded,
+  WifiOff as SignalError,
+  SignalWifi3Bar as SignalGood,
+  SignalWifi2Bar as SignalMedium,
+  SignalWifi0Bar as SignalNone,
+  SignalWifi4Bar as SignalStrong,
+  SignalWifi1Bar as SignalWeak,
+  SortByAlphaRounded,
+  SortRounded,
+} from '@/components/shared/lucide-icons'
 import { useGroupDelays } from '@/hooks/use-group-delays'
 import { useProfiles } from '@/hooks/use-profiles'
 import { useProxySelection } from '@/hooks/use-proxy-selection'

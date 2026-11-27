@@ -1,4 +1,3 @@
-import { ClearRounded } from '@mui/icons-material'
 import { Box, SvgIcon, TextField, styled, IconButton } from '@mui/material'
 import Tooltip from '@mui/material/Tooltip'
 import {
@@ -15,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import matchCaseIcon from '@/assets/image/component/match_case.svg?react'
 import matchWholeWordIcon from '@/assets/image/component/match_whole_word.svg?react'
 import UseRegularExpressionIcon from '@/assets/image/component/use_regular_expression.svg?react'
+import { ClearRounded } from '@/components/shared/lucide-icons'
 import { buildRegex, compileStringMatcher } from '@/utils/search-matcher'
 
 export type SearchState = {

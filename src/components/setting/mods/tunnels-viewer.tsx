@@ -1,5 +1,4 @@
 /* eslint-disable @eslint-react/set-state-in-effect */
-import { Delete, ExpandLess, ExpandMore } from '@mui/icons-material'
 import {
   Button,
   Divider,
@@ -23,6 +22,11 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog } from '@/components/base'
+import {
+  Delete,
+  ExpandLess,
+  ExpandMore,
+} from '@/components/shared/lucide-icons'
 import { useClash } from '@/hooks/use-clash'
 import { useProxiesData } from '@/providers/app-data-context'
 import { probeListener, type ListenerTransport } from '@/services/cmds'

@@ -1,9 +1,4 @@
 import {
-  ExpandLessRounded,
-  ExpandMoreRounded,
-  InboxRounded,
-} from '@mui/icons-material'
-import {
   alpha,
   Box,
   ListItemText,
@@ -16,6 +11,11 @@ import {
 import { memo, useId, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ExpandLessRounded,
+  ExpandMoreRounded,
+  InboxRounded,
+} from '@/components/shared/lucide-icons'
 import { useIconCache } from '@/hooks/use-icon-cache'
 import { useVerge } from '@/hooks/use-verge'
 import type { ResolvedProxyMember } from '@/types/proxy-view'

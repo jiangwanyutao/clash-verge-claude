@@ -1,4 +1,3 @@
-import { CloseRounded } from '@mui/icons-material'
 import {
   Snackbar,
   Alert,
@@ -11,6 +10,7 @@ import {
 import React, { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { CloseRounded } from '@/components/shared/lucide-icons'
 import {
   boundNoticeText,
   subscribeNotices,

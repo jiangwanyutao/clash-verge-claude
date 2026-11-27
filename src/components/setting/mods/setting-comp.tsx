@@ -1,4 +1,3 @@
-import { ChevronRightRounded } from '@mui/icons-material'
 import {
   Box,
   List,
@@ -10,6 +9,7 @@ import {
 import CircularProgress from '@mui/material/CircularProgress'
 import React, { ReactNode, useState } from 'react'
 
+import { ChevronRightRounded } from '@/components/shared/lucide-icons'
 import isAsyncFunction from '@/utils/is-async-function'
 
 interface ItemProps {

@@ -1,14 +1,14 @@
-import {
-  DirectionsRounded,
-  LanguageRounded,
-  MultipleStopRounded,
-} from '@mui/icons-material'
 import { Box, Paper, Stack, Typography } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BaseConfig } from 'tauri-plugin-mihomo-api'
 
+import {
+  DirectionsRounded,
+  LanguageRounded,
+  MultipleStopRounded,
+} from '@/components/shared/lucide-icons'
 import { useClashMode, useRuntimeConfig } from '@/hooks/use-clash'
 import {
   useAppRefreshers,

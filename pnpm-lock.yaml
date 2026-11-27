@@ -247,6 +247,9 @@ importers:
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
+      lucide-react:
+        specifier: ^1.81.0
+        version: 1.81.0(@types/react@19.3.0)(react@19.3.1)
       meta-json-schema:
         specifier: ^1.19.31
         version: 1.19.31
@@ -277,6 +280,9 @@ importers:
       react-i18next:
         specifier: 17.1.9
         version: 17.1.9(i18next@26.4.2(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)
+      react-icons:
+        specifier: ^5.7.0
+        version: 5.7.0(react@19.3.1)
       react-markdown:
         specifier: 10.1.0
         version: 10.1.0(@types/react@19.3.0)(react@19.3.1)(supports-color@7.2.0)
@@ -4005,6 +4011,15 @@ packages:
   lru-queue@0.1.0:
     resolution: {integrity: sha512-BpdYkt9EvGl8OfWHDQPISVpcl5xZthb+XPsbELj5AQXxIC8IriDZIQYjBJPEm5rS420sjZ0TLEzRcq5KdBhYrQ==}
 
+  lucide-react@1.81.0:
+    resolution: {integrity: sha512-U+CisvFQ84m+xUJAKKA4q+mykGB1LAmu196hOblQbuNYJgD43iHwpmfYuqcFYHXJu2oqRih5JoH3f5LxwsUegg==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -4421,6 +4436,11 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  react-icons@5.7.0:
+    resolution: {integrity: sha512-LBLy340Rzqy6+/yVhZKT3B/QpP1BZaesGqasf09HPOBzRarcDIFH0WwXlXQfE7q7ipxK4MSiC5DIBWURCny6fw==}
+    peerDependencies:
+      react: '*'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -8830,6 +8850,12 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
 
+  lucide-react@1.81.0(@types/react@19.3.0)(react@19.3.1):
+    dependencies:
+      react: 19.3.1
+    optionalDependencies:
+      '@types/react': 19.3.0
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -9388,6 +9414,10 @@ snapshots:
     optionalDependencies:
       react-dom: 19.3.1(react@19.3.1)
       typescript: 6.0.3
+
+  react-icons@5.7.0(react@19.3.1):
+    dependencies:
+      react: 19.3.1
 
   react-is@16.13.1: {}
 

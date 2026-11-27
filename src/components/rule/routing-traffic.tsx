@@ -27,15 +27,20 @@ export function RoutingTraffic({ enabled }: { enabled: boolean }) {
   return (
     <Paper
       variant="outlined"
-      sx={{
+      sx={(theme) => ({
         mx: '10px',
         p: 1.5,
-        bgcolor: 'var(--glass-bg-strong)',
+        bgcolor: 'var(--glass-bg)',
         borderColor: 'var(--glass-edge)',
         borderRadius: 'var(--glass-radius-card)',
         boxShadow: 'var(--glass-card-shadow)',
+        backdropFilter: 'var(--glass-blur-card)',
+        WebkitBackdropFilter: 'var(--glass-blur-card)',
         fontVariantNumeric: 'tabular-nums',
-      }}
+        '@supports not (backdrop-filter: blur(1px))': {
+          bgcolor: theme.palette.background.paper,
+        },
+      })}
     >
       <Typography variant="subtitle2">专用分流流量</Typography>
       <Typography variant="caption" color="text.secondary">

@@ -1,4 +1,3 @@
-import { RefreshRounded, StorageOutlined } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -21,6 +20,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { updateRuleProvider } from 'tauri-plugin-mihomo-api'
 
+import {
+  RefreshRounded,
+  StorageOutlined,
+} from '@/components/shared/lucide-icons'
 import { useAppRefreshers, useRulesData } from '@/providers/app-data-context'
 import { syncRuntimeProviders } from '@/services/cmds'
 import { mutate } from '@/services/mutate'

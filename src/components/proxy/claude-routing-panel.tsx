@@ -1,21 +1,22 @@
-import { SpeedRounded } from '@mui/icons-material'
 import {
   Alert,
-  Avatar,
+  alpha,
   Box,
   Button,
-  FormControlLabel,
   MenuItem,
   Stack,
   Switch,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { useRef, useState } from 'react'
 
 import { BaseDialog } from '@/components/base'
 import { routingTraffic } from '@/components/rule/routing-traffic'
+import { SpeedRounded } from '@/components/shared/lucide-icons'
+import { ServiceBrandIcon } from '@/components/shared/service-brand-icon'
 import { useVerge } from '@/hooks/use-verge'
 import delayManager from '@/services/delay'
 import { showNotice } from '@/services/notice-service'
@@ -41,6 +42,7 @@ export function ClaudeRoutingPanel({
   connections?: IConnectionsItem[]
 }) {
   const { verge, patchVerge } = useVerge()
+  const theme = useTheme()
   const current =
     service === 'Claude' ? verge?.claude_routing : verge?.codex_routing
   const routing: Routing = {
@@ -152,7 +154,7 @@ export function ClaudeRoutingPanel({
       label="出口节点"
       value={selectedExit}
       disabled={busy || !routing.exit_names.length}
-      sx={{ flex: 1, minWidth: 0 }}
+      sx={{ flex: 1, minWidth: 140 }}
       onChange={(event) => {
         void save({ ...routing, selected_exit: event.target.value })
       }}
@@ -174,8 +176,7 @@ export function ClaudeRoutingPanel({
   const statBox = (label: string, value: string, accent?: string) => (
     <Box
       sx={{
-        flex: 1,
-        minWidth: 0,
+        flex: '1 0 90px',
         p: 1,
         borderRadius: 'var(--glass-radius-control)',
         bgcolor: 'var(--glass-muted)',
@@ -202,30 +203,42 @@ export function ClaudeRoutingPanel({
     <Box
       sx={{
         p: isFull ? 2 : 1.5,
-        bgcolor: 'var(--glass-bg-strong)',
+        bgcolor: 'var(--glass-bg)',
         border: '1px solid var(--glass-edge)',
         borderRadius: 'var(--glass-radius-card)',
         boxShadow: 'var(--glass-card-shadow)',
+        backdropFilter: 'var(--glass-blur-card)',
+        WebkitBackdropFilter: 'var(--glass-blur-card)',
+        overflow: 'hidden',
+        '@supports not (backdrop-filter: blur(1px))': {
+          bgcolor: theme.palette.background.paper,
+        },
       }}
     >
       {isFull ? (
-        <Stack direction="row" sx={{ alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-          <Avatar
-            variant="rounded"
-            sx={{
-              width: 40,
-              height: 40,
-              bgcolor: 'var(--glass-muted)',
-              color: 'primary.main',
-              fontWeight: 700,
-              border: '1px solid var(--glass-edge)',
-            }}
-          >
-            {service[0]}
-          </Avatar>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            gap: 1.5,
+            mb: 1.5,
+            mx: -2,
+            mt: -2,
+            px: 2,
+            py: 1.5,
+            borderBottom: '1px solid var(--glass-hairline)',
+            ...(routing.enabled && {
+              backgroundImage: `linear-gradient(135deg, ${alpha(
+                theme.palette.primary.main,
+                0.16,
+              )}, ${alpha(theme.palette.primary.main, 0.03)})`,
+            }),
+          }}
+        >
+          <ServiceBrandIcon service={service} size={40} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {service}
+              {service} 专用
             </Typography>
             <Typography variant="caption" color="text.secondary">
               策略组 {service}-Verge · {routing.exit_names.length} 个可选出口
@@ -240,31 +253,40 @@ export function ClaudeRoutingPanel({
           />
         </Stack>
       ) : (
-        <Stack
-          direction="row"
-          spacing={1.5}
-          useFlexGap
-          sx={{ alignItems: 'center', flexWrap: 'wrap', minWidth: 0 }}
-        >
-          <FormControlLabel
-            label={`${service} 专用分流`}
-            control={
-              <Switch
-                checked={routing.enabled}
-                disabled={busy || !verge || !routing.exit_names.length}
-                onChange={(_, enabled) => {
-                  void save({ ...routing, enabled })
-                }}
-              />
-            }
-          />
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 1, mb: 1 }}>
+          <ServiceBrandIcon service={service} size={28} />
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 700, flex: 1, minWidth: 0 }}
+          >
+            {service} 专用
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                bgcolor: routing.enabled ? 'success.main' : 'grey.500',
+              }}
+            />
+            <Typography
+              variant="caption"
+              sx={{
+                color: routing.enabled ? 'success.main' : 'text.secondary',
+              }}
+            >
+              {routing.enabled ? '已启用' : '未启用'}
+            </Typography>
+          </Box>
         </Stack>
       )}
 
       <Stack
         direction="row"
         spacing={1}
-        sx={{ alignItems: 'center', mt: isFull ? 0 : 1 }}
+        useFlexGap
+        sx={{ alignItems: 'center', flexWrap: 'wrap' }}
       >
         {exitSelect}
         <Button
@@ -295,7 +317,12 @@ export function ClaudeRoutingPanel({
       </Stack>
 
       {isFull && (
-        <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{ mt: 1.5, flexWrap: 'wrap' }}
+        >
           {statBox('活动连接', `${traffic.count}`)}
           {statBox(
             '实时流量',

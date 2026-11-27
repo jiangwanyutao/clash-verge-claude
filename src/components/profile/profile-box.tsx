@@ -5,7 +5,7 @@ export const ProfileBox = styled(Box)(
     const { mode, primary, text } = theme.palette
     const key = `${mode}-${!!selected}`
 
-    const backgroundColor = 'var(--glass-bg-strong)'
+    const backgroundColor = 'var(--glass-bg)'
 
     const color = {
       'light-true': text.secondary,
@@ -52,6 +52,11 @@ export const ProfileBox = styled(Box)(
       ...borderSelect,
       borderRadius: 'var(--glass-radius-card)',
       boxShadow: 'var(--glass-card-shadow)',
+      backdropFilter: 'var(--glass-blur-card)',
+      WebkitBackdropFilter: 'var(--glass-blur-card)',
+      '@supports not (backdrop-filter: blur(1px))': {
+        backgroundColor: theme.palette.background.paper,
+      },
       fontVariantNumeric: 'tabular-nums',
       color,
       '& h2': { color: h2color },

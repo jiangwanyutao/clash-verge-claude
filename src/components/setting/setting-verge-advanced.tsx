@@ -1,10 +1,10 @@
-import { ContentCopyRounded } from '@mui/icons-material'
 import { Typography } from '@mui/material'
 import type { Update } from '@tauri-apps/plugin-updater'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DialogRef, TooltipIcon } from '@/components/base'
+import { ContentCopyRounded } from '@/components/shared/lucide-icons'
 import { updateLastCheckTime } from '@/hooks/use-update'
 import {
   exitApp,

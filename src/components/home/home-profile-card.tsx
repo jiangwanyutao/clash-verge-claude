@@ -1,13 +1,4 @@
 import {
-  CloudUploadOutlined,
-  DnsOutlined,
-  EventOutlined,
-  LaunchOutlined,
-  SpeedOutlined,
-  StorageOutlined,
-  UpdateOutlined,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   LinearProgress,
@@ -24,6 +15,15 @@ import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
+import {
+  CloudUploadOutlined,
+  DnsOutlined,
+  EventOutlined,
+  LaunchOutlined,
+  SpeedOutlined,
+  StorageOutlined,
+  UpdateOutlined,
+} from '@/components/shared/lucide-icons'
 import { useAppRefreshers } from '@/providers/app-data-context'
 import { updateProfile } from '@/services/cmds'
 import { mutate } from '@/services/mutate'

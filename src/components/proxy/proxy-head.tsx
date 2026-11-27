@@ -1,3 +1,8 @@
+import { Box, IconButton, TextField, type SxProps } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { BaseSearchBox } from '@/components/base'
 import {
   AccessTimeRounded,
   MyLocationRounded,
@@ -10,12 +15,7 @@ import {
   WifiTetheringOffRounded,
   SortByAlphaRounded,
   SortRounded,
-} from '@mui/icons-material'
-import { Box, IconButton, TextField, type SxProps } from '@mui/material'
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-
-import { BaseSearchBox } from '@/components/base'
+} from '@/components/shared/lucide-icons'
 import { useVerge } from '@/hooks/use-verge'
 import delayManager from '@/services/delay'
 import { showNotice } from '@/services/notice-service'

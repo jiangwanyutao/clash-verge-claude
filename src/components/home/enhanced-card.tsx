@@ -45,7 +45,7 @@ export const EnhancedCard = forwardRef<HTMLElement, EnhancedCardProps>(
           display: 'flex',
           flexDirection: 'column',
           borderRadius: 'var(--glass-radius-card)',
-          backgroundColor: 'var(--glass-bg-strong)',
+          backgroundColor: 'var(--glass-bg)',
           border: '1px solid var(--glass-edge)',
           boxShadow: 'var(--glass-card-shadow)',
           backdropFilter: 'var(--glass-blur-card)',

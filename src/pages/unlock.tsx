@@ -1,12 +1,4 @@
 import {
-  AccessTimeOutlined,
-  CancelOutlined,
-  CheckCircleOutlined,
-  HelpOutlined,
-  PendingOutlined,
-  RefreshRounded,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   Card,
@@ -25,6 +17,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseEmpty, BasePage } from '@/components/base'
+import {
+  AccessTimeOutlined,
+  CancelOutlined,
+  CheckCircleOutlined,
+  HelpOutlined,
+  PendingOutlined,
+  RefreshRounded,
+} from '@/components/shared/lucide-icons'
 import {
   checkMediaUnlock,
   checkMediaUnlockItem,

@@ -38,6 +38,7 @@ const RoutingPage = () => {
           为 Claude、Codex 等 AI 服务指定独立出口，避免与常规流量混用节点。
         </Typography>
         <Box
+          className="glass-stagger"
           sx={{
             mx: '10px',
             display: 'grid',

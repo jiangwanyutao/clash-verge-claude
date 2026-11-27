@@ -262,7 +262,7 @@
   }
 }
 
-.layout.layout--nav-collapsed {
+@mixin nav-collapsed-layout {
   --layout-nav-collapsed-width: 72px;
   --layout-nav-item-size: 52px;
   --layout-nav-item-radius: 12px;
@@ -300,7 +300,8 @@
         justify-content: center !important;
       }
 
-      .the-logo > div > svg:last-child {
+      .the-logo > div > svg:last-child,
+      .the-logo > div > span {
         display: none !important;
       }
 
@@ -359,5 +360,16 @@
         }
       }
     }
+  }
+}
+
+.layout.layout--nav-collapsed {
+  @include nav-collapsed-layout;
+}
+
+// 窄窗口自动紧凑侧栏，不写入用户偏好，宽屏恢复手动设置
+@media (max-width: 600px) {
+  .layout {
+    @include nav-collapsed-layout;
   }
 }

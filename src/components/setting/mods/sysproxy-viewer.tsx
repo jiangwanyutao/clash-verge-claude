@@ -1,4 +1,3 @@
-import { EditRounded } from '@mui/icons-material'
 import {
   Autocomplete,
   Box,
@@ -31,6 +30,7 @@ import {
   TooltipIcon,
 } from '@/components/base'
 import { EditorViewer } from '@/components/profile/editor-viewer'
+import { EditRounded } from '@/components/shared/lucide-icons'
 import { useDisplayedMixedPort } from '@/hooks/use-displayed-mixed-port'
 import { useSystemProxyState } from '@/hooks/use-system-proxy-state'
 import { useVerge } from '@/hooks/use-verge'

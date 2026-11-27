@@ -1,11 +1,5 @@
 import { useSortable } from '@dnd-kit/react/sortable'
 import {
-  CheckBoxOutlineBlankRounded,
-  CheckBoxRounded,
-  DragIndicatorRounded,
-  RefreshRounded,
-} from '@mui/icons-material'
-import {
   Box,
   CircularProgress,
   IconButton,
@@ -31,6 +25,12 @@ import { BaseDialog } from '@/components/base'
 import { EditorViewer } from '@/components/profile/editor-viewer'
 import { GroupsEditorViewer } from '@/components/profile/groups-editor-viewer'
 import { RulesEditorViewer } from '@/components/profile/rules-editor-viewer'
+import {
+  CheckBoxOutlineBlankRounded,
+  CheckBoxRounded,
+  DragIndicatorRounded,
+  RefreshRounded,
+} from '@/components/shared/lucide-icons'
 import { useEditorDocument } from '@/hooks/use-editor-document'
 import {
   getNextUpdateTime,

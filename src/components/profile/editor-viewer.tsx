@@ -1,11 +1,4 @@
 import {
-  CloseFullscreenRounded,
-  ContentPasteRounded,
-  FormatPaintRounded,
-  OpenInFullRounded,
-  RestartAltRounded,
-} from '@mui/icons-material'
-import {
   Button,
   ButtonGroup,
   Dialog,
@@ -20,6 +13,13 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseLoadingOverlay, MonacoEditor } from '@/components/base'
+import {
+  CloseFullscreenRounded,
+  ContentPasteRounded,
+  FormatPaintRounded,
+  OpenInFullRounded,
+  RestartAltRounded,
+} from '@/components/shared/lucide-icons'
 import { showNotice } from '@/services/notice-service'
 import { useThemeMode } from '@/services/states'
 import type { MonacoEditorInstance, MonacoMarker } from '@/types/monaco'

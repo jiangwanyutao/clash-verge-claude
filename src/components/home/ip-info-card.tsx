@@ -1,10 +1,4 @@
 import {
-  LocationOnOutlined,
-  RefreshOutlined,
-  VisibilityOffOutlined,
-  VisibilityOutlined,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   FormControlLabel,
@@ -28,6 +22,12 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  LocationOnOutlined,
+  RefreshOutlined,
+  VisibilityOffOutlined,
+  VisibilityOutlined,
+} from '@/components/shared/lucide-icons'
 import { getIpInfo } from '@/services/api'
 import { useQuery } from '@/services/query-client'
 import getSystem from '@/utils/get-system'

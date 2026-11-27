@@ -1,4 +1,3 @@
-import { RestartAltRounded } from '@mui/icons-material'
 import {
   Alert,
   Box,
@@ -32,6 +31,7 @@ import {
   MonacoEditor,
   Switch,
 } from '@/components/base'
+import { RestartAltRounded } from '@/components/shared/lucide-icons'
 import { useClash } from '@/hooks/use-clash'
 import { useProfiles } from '@/hooks/use-profiles'
 import { useVerge } from '@/hooks/use-verge'

@@ -1,11 +1,4 @@
 import {
-  CheckRounded,
-  CloseRounded,
-  DeleteRounded,
-  EditRounded,
-  OpenInNewRounded,
-} from '@mui/icons-material'
-import {
   Divider,
   IconButton,
   Stack,
@@ -14,6 +7,14 @@ import {
 } from '@mui/material'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import {
+  CheckRounded,
+  CloseRounded,
+  DeleteRounded,
+  EditRounded,
+  OpenInNewRounded,
+} from '@/components/shared/lucide-icons'
 
 interface Props {
   value?: string

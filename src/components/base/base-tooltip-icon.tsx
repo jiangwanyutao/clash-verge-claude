@@ -1,10 +1,11 @@
-import { InfoRounded } from '@mui/icons-material'
 import {
   Tooltip,
   IconButton,
   IconButtonProps,
   SvgIconProps,
 } from '@mui/material'
+
+import { InfoRounded } from '@/components/shared/lucide-icons'
 
 interface Props extends IconButtonProps {
   title?: string

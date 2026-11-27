@@ -1,4 +1,3 @@
-import { Shuffle } from '@mui/icons-material'
 import {
   CircularProgress,
   IconButton,
@@ -13,6 +12,7 @@ import { forwardRef, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, Switch } from '@/components/base'
+import { Shuffle } from '@/components/shared/lucide-icons'
 import { useClashInfo } from '@/hooks/use-clash'
 import { useDisplayedMixedPort } from '@/hooks/use-displayed-mixed-port'
 import { useVerge } from '@/hooks/use-verge'

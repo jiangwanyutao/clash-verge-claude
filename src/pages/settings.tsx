@@ -1,5 +1,4 @@
-import { GitHub, HelpOutlineRounded, Telegram } from '@mui/icons-material'
-import { Box, ButtonGroup, IconButton, Grid } from '@mui/material'
+import { Box, ButtonGroup, IconButton, Grid, useTheme } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { useTranslation } from 'react-i18next'
 
@@ -8,11 +7,17 @@ import SettingClash from '@/components/setting/setting-clash'
 import SettingSystem from '@/components/setting/setting-system'
 import SettingVergeAdvanced from '@/components/setting/setting-verge-advanced'
 import SettingVergeBasic from '@/components/setting/setting-verge-basic'
+import {
+  GitHub,
+  HelpOutlineRounded,
+  Telegram,
+} from '@/components/shared/lucide-icons'
 import { showNotice } from '@/services/notice-service'
 import { openExternalUrl } from '@/utils/open-external-url'
 
 const SettingPage = () => {
   const { t } = useTranslation()
+  const theme = useTheme()
 
   const onError = (err: any) => {
     showNotice.error(err)
@@ -36,9 +41,14 @@ const SettingPage = () => {
 
   const cardSx = {
     borderRadius: 'var(--glass-radius-card)',
-    bgcolor: 'var(--glass-bg-strong)',
+    bgcolor: 'var(--glass-bg)',
     border: '1px solid var(--glass-edge)',
     boxShadow: 'var(--glass-card-shadow)',
+    backdropFilter: 'var(--glass-blur-card)',
+    WebkitBackdropFilter: 'var(--glass-blur-card)',
+    '@supports not (backdrop-filter: blur(1px))': {
+      bgcolor: theme.palette.background.paper,
+    },
   }
 
   return (

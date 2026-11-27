@@ -1,4 +1,3 @@
-import { ContentCopyRounded } from '@mui/icons-material'
 import { alpha, Box, Button, CircularProgress, IconButton } from '@mui/material'
 import { writeText } from '@tauri-apps/plugin-clipboard-manager'
 import type { Ref } from 'react'
@@ -6,6 +5,7 @@ import { useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, BaseEmpty, DialogRef } from '@/components/base'
+import { ContentCopyRounded } from '@/components/shared/lucide-icons'
 import { useNetworkInterfaces } from '@/hooks/use-network'
 import { showNotice } from '@/services/notice-service'
 

@@ -1,4 +1,3 @@
-import { ContentCopy } from '@mui/icons-material'
 import {
   Alert,
   Box,
@@ -16,6 +15,7 @@ import { useImperativeHandle, useState, type Ref } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, DialogRef, Switch } from '@/components/base'
+import { ContentCopy } from '@/components/shared/lucide-icons'
 import { useClashInfo } from '@/hooks/use-clash'
 import { useVerge } from '@/hooks/use-verge'
 import { showNotice } from '@/services/notice-service'

@@ -1,12 +1,4 @@
 import {
-  DnsOutlined,
-  HelpOutlineRounded,
-  HistoryEduOutlined,
-  RouterOutlined,
-  SettingsOutlined,
-  SpeedOutlined,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   Checkbox,
@@ -33,6 +25,14 @@ import { EnhancedCard } from '@/components/home/enhanced-card'
 import { EnhancedTrafficStats } from '@/components/home/enhanced-traffic-stats'
 import { HomeProfileCard } from '@/components/home/home-profile-card'
 import { ProxyTunCard } from '@/components/home/proxy-tun-card'
+import {
+  DnsOutlined,
+  HelpOutlineRounded,
+  HistoryEduOutlined,
+  RouterOutlined,
+  SettingsOutlined,
+  SpeedOutlined,
+} from '@/components/shared/lucide-icons'
 import { useProfiles } from '@/hooks/use-profiles'
 import { useVerge } from '@/hooks/use-verge'
 import { entry_lightweight_mode } from '@/services/cmds'
@@ -381,7 +381,12 @@ const HomePage = () => {
           </Box>
         }
       >
-        <Grid container spacing={1.5} columns={{ xs: 6, sm: 6, md: 12 }}>
+        <Grid
+          container
+          className="glass-stagger"
+          spacing={1.5}
+          columns={{ xs: 6, sm: 6, md: 12 }}
+        >
           {criticalCards}
 
           {nonCriticalCards}

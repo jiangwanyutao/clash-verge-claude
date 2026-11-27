@@ -1,5 +1,6 @@
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { IconButton, Fade, SxProps, Theme } from '@mui/material'
+
+import { KeyboardArrowUp as KeyboardArrowUpIcon } from '@/components/shared/lucide-icons'
 
 interface Props {
   onClick: () => void

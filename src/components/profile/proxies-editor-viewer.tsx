@@ -1,9 +1,5 @@
 import { arrayMove } from '@dnd-kit/helpers'
 import {
-  VerticalAlignBottomRounded,
-  VerticalAlignTopRounded,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   Dialog,
@@ -29,6 +25,10 @@ import { useTranslation } from 'react-i18next'
 
 import { BaseSearchBox, MonacoEditor } from '@/components/base'
 import { ProxyItem } from '@/components/profile/proxy-item'
+import {
+  VerticalAlignBottomRounded,
+  VerticalAlignTopRounded,
+} from '@/components/shared/lucide-icons'
 import { readProfileFile, saveProfileFile } from '@/services/cmds'
 import { mutate } from '@/services/mutate'
 import { showNotice } from '@/services/notice-service'

@@ -142,9 +142,40 @@ export const createGlassComponents = (): Components<Theme> => ({
   },
   MuiSwitch: {
     styleOverrides: {
-      track: {
-        borderRadius: 999,
-      },
+      root: ({ theme }) => ({
+        width: 36,
+        height: 21,
+        padding: 0,
+        '& .MuiSwitch-switchBase': {
+          padding: 2,
+          color: '#fff',
+          transition: 'transform .2s cubic-bezier(.3,.7,.4,1.3)',
+          '&.Mui-checked': {
+            transform: 'translateX(15px)',
+            color: '#fff',
+            '& + .MuiSwitch-track': {
+              backgroundColor: theme.palette.primary.main,
+              opacity: 1,
+            },
+          },
+          '&.Mui-disabled': {
+            color: theme.palette.mode === 'dark' ? '#8b93a3' : '#e6e8ee',
+            '& + .MuiSwitch-track': {
+              opacity: 0.4,
+            },
+          },
+        },
+        '& .MuiSwitch-thumb': {
+          width: 17,
+          height: 17,
+        },
+        '& .MuiSwitch-track': {
+          borderRadius: 999,
+          backgroundColor: 'rgba(120, 130, 150, 0.3)',
+          opacity: 1,
+          transition: 'background .2s',
+        },
+      }),
     },
   },
   MuiOutlinedInput: {

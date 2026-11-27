@@ -1,12 +1,4 @@
 import {
-  ArrowDownwardRounded,
-  ArrowUpwardRounded,
-  CloudDownloadRounded,
-  CloudUploadRounded,
-  LinkRounded,
-  MemoryRounded,
-} from '@mui/icons-material'
-import {
   Grid,
   PaletteColor,
   Paper,
@@ -17,6 +9,14 @@ import {
 import { ReactNode, memo, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ArrowDownwardRounded,
+  ArrowUpwardRounded,
+  CloudDownloadRounded,
+  CloudUploadRounded,
+  LinkRounded,
+  MemoryRounded,
+} from '@/components/shared/lucide-icons'
 import { TrafficErrorBoundary } from '@/components/shared/traffic-error-boundary'
 import { useConnectionSummaryData } from '@/hooks/use-connection-data'
 import { useMemoryData } from '@/hooks/use-memory-data'

@@ -1,8 +1,4 @@
 import {
-  RestartAltRounded,
-  SwitchAccessShortcutRounded,
-} from '@mui/icons-material'
-import {
   Box,
   Button,
   Chip,
@@ -18,6 +14,10 @@ import { useTranslation } from 'react-i18next'
 import { closeAllConnections } from 'tauri-plugin-mihomo-api'
 
 import { BaseDialog, DialogRef } from '@/components/base'
+import {
+  RestartAltRounded,
+  SwitchAccessShortcutRounded,
+} from '@/components/shared/lucide-icons'
 import { useClash, useClashInfo } from '@/hooks/use-clash'
 import { useVerge } from '@/hooks/use-verge'
 import { changeClashCore, restartCore, upgradeClashCore } from '@/services/cmds'

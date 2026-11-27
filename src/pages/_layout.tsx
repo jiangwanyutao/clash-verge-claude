@@ -184,11 +184,6 @@ const Layout = () => {
             },
             '& .layout-content__left .the-traffic > div': {
               mx: 1,
-              p: 1.5,
-              bgcolor: 'var(--glass-bg-strong)',
-              border: '1px solid var(--glass-edge)',
-              borderRadius: 'var(--glass-radius-card)',
-              boxShadow: 'var(--glass-card-shadow)',
             },
           }),
           OS === 'linux'

@@ -1,10 +1,10 @@
-import { LanguageRounded } from '@mui/icons-material'
 import { alpha, Box, Divider, Menu, MenuItem, styled } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseLoading } from '@/components/base'
+import { LanguageRounded } from '@/components/shared/lucide-icons'
 import { useIconCache } from '@/hooks/use-icon-cache'
 import { cmdTestDelay } from '@/services/cmds'
 import delayManager from '@/services/delay'

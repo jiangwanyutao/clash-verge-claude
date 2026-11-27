@@ -1,13 +1,16 @@
-import { LanOutlined, LanRounded, WarningRounded } from '@mui/icons-material'
 import { Box, Button, ButtonGroup, Typography } from '@mui/material'
 import { useLockFn } from 'ahooks'
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BaseDialog, BasePage, TooltipIcon } from '@/components/base'
-import { ClaudeRoutingPanel } from '@/components/proxy/claude-routing-panel'
 import { ProviderButton } from '@/components/proxy/provider-button'
 import { ProxyGroups } from '@/components/proxy/proxy-groups'
+import {
+  LanOutlined,
+  LanRounded,
+  WarningRounded,
+} from '@/components/shared/lucide-icons'
 import {
   useAppRefreshers,
   useClashConfigData,
@@ -221,22 +224,6 @@ const ProxyPage = () => {
           </Box>
         }
       >
-        <Box
-          sx={{
-            mx: '10px',
-            mt: 1.5,
-            flexShrink: 0,
-            display: 'grid',
-            gap: 1.5,
-            gridTemplateColumns: {
-              xs: '1fr',
-              md: 'repeat(2, minmax(0, 1fr))',
-            },
-          }}
-        >
-          <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
-          <ClaudeRoutingPanel mode={curMode ?? 'rule'} service="Codex" />
-        </Box>
         <Box sx={{ flex: 1, minHeight: 0 }}>
           <ProxyGroups
             mode={curMode ?? 'rule'}
