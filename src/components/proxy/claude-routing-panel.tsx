@@ -18,11 +18,19 @@ import { routingTraffic } from '@/components/rule/routing-traffic'
 import { SpeedRounded } from '@/components/shared/lucide-icons'
 import { ServiceBrandIcon } from '@/components/shared/service-brand-icon'
 import { useVerge } from '@/hooks/use-verge'
+import {
+  getBuiltinRoutingRules,
+  listSubscriptionExitNodes,
+  snapshotSubscriptionExit,
+} from '@/services/cmds'
 import delayManager from '@/services/delay'
 import { showNotice } from '@/services/notice-service'
 import parseTraffic from '@/utils/parse-traffic'
 
 import { addSnapshotNodes, importClaudeRouting } from './claude-routing-import'
+import { ManualExitForm } from './manual-exit-form'
+import { findManualExit, putManualExit } from './manual-exit-merge'
+import { canEditManualNode } from './manual-exit-validation'
 import {
   currentRoutingDelay,
   routingProtected,
@@ -56,12 +64,27 @@ export function ClaudeRoutingPanel({
     selected_exit: current?.selected_exit ?? '',
     configuration: current?.configuration ?? '',
     exit_names: current?.exit_names ?? [],
+    rules: current?.rules ?? null,
   }
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [configuration, setConfiguration] = useState('')
   const [exits, setExits] = useState('')
   const [error, setError] = useState('')
+  const [manualOpen, setManualOpen] = useState(false)
+  const [manualNode, setManualNode] = useState<
+    Record<string, unknown> | undefined
+  >()
+  const [subscriptionNodes, setSubscriptionNodes] = useState<
+    Array<{ name: string; source: string }>
+  >([])
+  const [subscriptionIndex, setSubscriptionIndex] = useState('')
+  const [subscriptionProfileUid, setSubscriptionProfileUid] = useState('')
+  const [excludedProviders, setExcludedProviders] = useState(0)
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [rulesText, setRulesText] = useState('')
+  const [defaultRules, setDefaultRules] = useState<string[]>([])
+  const [useDefaultRules, setUseDefaultRules] = useState(false)
   const [delayResult, setDelayResult] = useState<{
     key: string
     value: number
@@ -91,7 +114,94 @@ export function ClaudeRoutingPanel({
     setConfiguration(routing.configuration)
     setExits(routing.exit_names.join('\n'))
     setError('')
+    setManualOpen(false)
+    setSubscriptionNodes([])
+    setSubscriptionIndex('')
+    setSubscriptionProfileUid('')
     setOpen(true)
+  }
+
+  const openRules = async () => {
+    setBusy(true)
+    try {
+      const defaults = await getBuiltinRoutingRules(service)
+      setDefaultRules(defaults)
+      setRulesText((routing.rules ?? defaults).join('\n'))
+      setUseDefaultRules(routing.rules === null)
+      setError('')
+      setRulesOpen(true)
+    } catch (failure) {
+      showNotice.error(failure)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const saveRules = async () => {
+    const rules = rulesText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+    if (!useDefaultRules && !rules.length) {
+      setError('请至少填写一条规则，或恢复内置规则。')
+      return
+    }
+    if (await save({ ...routing, rules: useDefaultRules ? null : rules }))
+      setRulesOpen(false)
+  }
+
+  const loadSubscriptionNodes = async () => {
+    setBusy(true)
+    try {
+      const result = await listSubscriptionExitNodes()
+      setSubscriptionNodes(
+        Array.from(
+          new Map(
+            result.nodes.map((node) => [
+              JSON.stringify([node.source, node.name]),
+              node,
+            ]),
+          ).values(),
+        ),
+      )
+      setSubscriptionProfileUid(result.profile_uid)
+      setExcludedProviders(result.excluded_override_providers)
+      setSubscriptionIndex('')
+      setError(result.nodes.length ? '' : '当前订阅没有可用的固定节点。')
+    } catch {
+      setError('无法读取当前订阅节点，请确认订阅已启用。')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const addSubscriptionNode = async () => {
+    const node = subscriptionNodes[Number(subscriptionIndex)]
+    if (subscriptionIndex === '' || !node) return
+    setBusy(true)
+    try {
+      const yaml = await snapshotSubscriptionExit(
+        node.name,
+        node.source,
+        subscriptionProfileUid,
+      )
+      const result = addSnapshotNodes(configuration, yaml)
+      setConfiguration(result.configuration)
+      setExits((previous) =>
+        [
+          ...previous
+            .split('\n')
+            .map((name) => name.trim())
+            .filter(Boolean),
+          node.name,
+        ].join('\n'),
+      )
+      setError('')
+    } catch {
+      setError('无法添加该节点：请确认名称不重复、订阅可用且节点依赖有效。')
+    } finally {
+      setBusy(false)
+    }
   }
 
   const importText = (source: string) => {
@@ -333,6 +443,13 @@ export function ClaudeRoutingPanel({
         >
           配置出口
         </Button>
+        <Button
+          variant="outlined"
+          disabled={busy || testing || !verge}
+          onClick={() => void openRules()}
+        >
+          编辑规则
+        </Button>
       </Stack>
 
       {isFull && (
@@ -373,6 +490,7 @@ export function ClaudeRoutingPanel({
         cancelBtn="取消"
         loading={busy}
         disableCancel={busy}
+        disableOk={manualOpen}
         contentSx={{ width: { xs: 280, sm: 520 } }}
         onClose={() => {
           if (!busy) setOpen(false)
@@ -383,6 +501,126 @@ export function ClaudeRoutingPanel({
         }}
       >
         <Stack spacing={2} sx={{ pt: 1 }}>
+          <Typography variant="subtitle2">添加出口</Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            sx={{ flexWrap: 'wrap' }}
+          >
+            <Button
+              variant="outlined"
+              disabled={busy}
+              onClick={() => {
+                setManualNode(undefined)
+                setManualOpen(true)
+                setError('')
+              }}
+            >
+              手动填写节点
+            </Button>
+            <Button
+              variant="outlined"
+              disabled={busy || !routing.selected_exit}
+              onClick={() => {
+                try {
+                  const node = findManualExit(
+                    configuration,
+                    routing.selected_exit,
+                  )
+                  if (!node || !canEditManualNode(node))
+                    throw new Error(
+                      '当前出口不是可用表单编辑的 HTTP、SOCKS5 或 VLESS REALITY 节点。',
+                    )
+                  setManualNode(node)
+                  setManualOpen(true)
+                  setError('')
+                } catch (failure) {
+                  setError(
+                    failure instanceof Error
+                      ? failure.message
+                      : '无法读取当前节点。',
+                  )
+                }
+              }}
+            >
+              编辑当前节点
+            </Button>
+            <Button
+              variant="outlined"
+              disabled={busy}
+              onClick={() => void loadSubscriptionNodes()}
+            >
+              选择订阅节点
+            </Button>
+          </Stack>
+          {manualOpen && (
+            <ManualExitForm
+              key={manualNode ? String(manualNode.name) : 'new'}
+              initialValue={manualNode}
+              onCancel={() => setManualOpen(false)}
+              onSave={(node) => {
+                try {
+                  setConfiguration(
+                    putManualExit(configuration, node, !!manualNode),
+                  )
+                  if (!manualNode)
+                    setExits((previous) =>
+                      [
+                        ...previous
+                          .split('\n')
+                          .map((name) => name.trim())
+                          .filter(Boolean),
+                        String(node.name),
+                      ].join('\n'),
+                    )
+                  setManualOpen(false)
+                  setError('')
+                } catch (failure) {
+                  setError(
+                    failure instanceof Error
+                      ? failure.message
+                      : '无法保存节点。',
+                  )
+                }
+              }}
+            />
+          )}
+          {subscriptionNodes.length > 0 && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <TextField
+                select
+                label="订阅节点"
+                value={subscriptionIndex}
+                onChange={(event) => setSubscriptionIndex(event.target.value)}
+                sx={{ flex: 1 }}
+              >
+                {subscriptionNodes.map((node, index) => (
+                  <MenuItem
+                    key={JSON.stringify([node.source, node.name])}
+                    value={String(index)}
+                  >
+                    {node.name} · {node.source}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Button
+                variant="outlined"
+                disabled={busy || subscriptionIndex === ''}
+                onClick={() => void addSubscriptionNode()}
+              >
+                添加
+              </Button>
+            </Stack>
+          )}
+          {excludedProviders > 0 && (
+            <Alert severity="info">
+              部分订阅集合使用覆盖设置，暂不能安全地列出其中的节点。
+            </Alert>
+          )}
+          <Typography variant="caption" color="text.secondary">
+            订阅节点以固定快照保存，不随订阅更新自动变化；节点更新后请重新添加。填写或添加后，请点击下方“保存配置”。
+          </Typography>
           <Typography variant="body2">
             可导入原版运行配置中的 {service} 代理组，或粘贴出口
             YAML。专用出口须为固定节点，暂不支持由代理集合提供的动态节点、直连或自动切换组。
@@ -495,6 +733,50 @@ export function ClaudeRoutingPanel({
             disabled={busy}
             onChange={(event) => setExits(event.target.value)}
           />
+        </Stack>
+      </BaseDialog>
+      <BaseDialog
+        open={rulesOpen}
+        title={`${service} 分流规则`}
+        okBtn="保存规则"
+        cancelBtn="取消"
+        loading={busy}
+        onClose={() => setRulesOpen(false)}
+        onCancel={() => setRulesOpen(false)}
+        onOk={() => void saveRules()}
+        contentSx={{ width: { xs: 280, sm: 520 } }}
+      >
+        <Stack spacing={1.5} sx={{ pt: 1 }}>
+          <Typography variant="body2">
+            每行填写规则类型和值，例如 DOMAIN-SUFFIX,example.com 或
+            IP-CIDR,1.2.3.0/24；目标自动使用专用出口。删除某条规则后，对应流量将跟随其他规则处理。
+          </Typography>
+          {error && <Alert severity="error">{error}</Alert>}
+          <TextField
+            label="分流规则"
+            multiline
+            minRows={10}
+            maxRows={18}
+            value={rulesText}
+            disabled={busy}
+            onChange={(event) => {
+              setRulesText(event.target.value)
+              setUseDefaultRules(false)
+            }}
+            slotProps={{
+              input: { sx: { fontFamily: 'monospace', fontSize: 13 } },
+            }}
+          />
+          <Button
+            disabled={busy}
+            onClick={() => {
+              setRulesText(defaultRules.join('\n'))
+              setUseDefaultRules(true)
+              setError('')
+            }}
+          >
+            恢复内置规则
+          </Button>
         </Stack>
       </BaseDialog>
     </Box>

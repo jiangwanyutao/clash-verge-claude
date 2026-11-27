@@ -42,6 +42,16 @@ export function getOriginalImportStatus() {
   return commands.getOriginalImportStatus()
 }
 
+export const getBuiltinRoutingRules = (service: string) =>
+  commands.getBuiltinRoutingRules(service)
+export const listSubscriptionExitNodes = () =>
+  commands.listSubscriptionExitNodes()
+export const snapshotSubscriptionExit = (
+  name: string,
+  source: string,
+  profileUid: string,
+) => commands.snapshotSubscriptionExit(name, source, profileUid)
+
 export async function enhanceProfiles() {
   return (await commands.enhanceProfiles()).status === 'valid'
 }

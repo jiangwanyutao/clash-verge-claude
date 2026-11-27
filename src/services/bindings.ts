@@ -68,6 +68,20 @@ export const commands = {
   getProxyView: () => __TAURI_INVOKE<ProxyViewV1_Serialize>('get_proxy_view'),
   getRuntimeYaml: () => __TAURI_INVOKE<string>('get_runtime_yaml'),
   getRuntimeLogs: () => __TAURI_INVOKE<RuntimeLogs>('get_runtime_logs'),
+  getBuiltinRoutingRules: (service: string) =>
+    __TAURI_INVOKE<string[]>('get_builtin_routing_rules', { service }),
+  listSubscriptionExitNodes: () =>
+    __TAURI_INVOKE<SubscriptionExitList>('list_subscription_exit_nodes'),
+  snapshotSubscriptionExit: (
+    name: string,
+    source: string,
+    profileUid: string,
+  ) =>
+    __TAURI_INVOKE<string>('snapshot_subscription_exit', {
+      name,
+      source,
+      profileUid,
+    }),
   getRuntimeProxyChainConfig: (proxyChainExitNode: string) =>
     __TAURI_INVOKE<string>('get_runtime_proxy_chain_config', {
       proxyChainExitNode,
@@ -252,6 +266,7 @@ export type ClaudeRouting = {
   selected_exit?: string
   configuration?: string
   exit_names?: string[]
+  rules?: string[] | null
 }
 
 /**  Structured command failure returned to the frontend. */
@@ -991,6 +1006,17 @@ export type ServiceInstallOutcome =
 export type SidecarFailureSnapshot = {
   revision: number
   detail: string | null
+}
+
+export type SubscriptionExitList = {
+  profile_uid: string
+  nodes: SubscriptionExitNode[]
+  excluded_override_providers: number
+}
+
+export type SubscriptionExitNode = {
+  name: string
+  source: string
 }
 
 export type SystemInfo = {

@@ -13,6 +13,7 @@ pub struct ClaudeRouting {
     pub selected_exit: String,
     pub configuration: String,
     pub exit_names: Vec<String>,
+    pub rules: Option<Vec<String>>,
 }
 
 impl fmt::Debug for ClaudeRouting {
@@ -174,6 +175,9 @@ impl ClaudeRouting {
     }
 
     pub fn validate(&self) -> Result<()> {
+        if let Some(rules) = &self.rules {
+            custom_rules(rules, GROUP)?;
+        }
         if self.configuration.trim().is_empty() && !self.enabled {
             return Ok(());
         }
@@ -297,6 +301,13 @@ impl ClaudeRouting {
         if !self.enabled {
             return Ok(config);
         }
+        let service_rules = match &self.rules {
+            Some(rules) => match custom_rules(rules, group_name) {
+                Ok(rules) => rules,
+                Err(_) => return Ok(reject_service(config, &service_rules, group_name)),
+            },
+            None => service_rules,
+        };
         if self.validate().is_err() {
             return Ok(reject_service(config, &service_rules, group_name));
         }
@@ -395,6 +406,63 @@ impl ClaudeRouting {
     }
 }
 
+fn custom_rules(rules: &[String], group: &str) -> Result<Vec<Value>> {
+    ensure!(
+        !rules.is_empty() && rules.len() <= 1000,
+        "Rules must contain 1–1000 entries"
+    );
+    rules
+        .iter()
+        .map(|rule| {
+            let (kind, value) = rule
+                .split_once(',')
+                .ok_or_else(|| anyhow::anyhow!("Rule requires TYPE,VALUE"))?;
+            let (kind, value) = (kind.trim(), value.trim());
+            ensure!(
+                !value.is_empty()
+                    && value.len() <= 253
+                    && !value.contains(',')
+                    && !value.chars().any(char::is_whitespace),
+                "Invalid rule value"
+            );
+            ensure!(
+                matches!(
+                    kind,
+                    "DOMAIN" | "DOMAIN-SUFFIX" | "DOMAIN-KEYWORD" | "IP-CIDR" | "IP-CIDR6"
+                ),
+                "Unsupported rule type"
+            );
+            if matches!(kind, "IP-CIDR" | "IP-CIDR6") {
+                let (address, bits) = value
+                    .split_once('/')
+                    .ok_or_else(|| anyhow::anyhow!("CIDR requires prefix length"))?;
+                let address: std::net::IpAddr = address.parse()?;
+                let bits: u8 = bits.parse()?;
+                ensure!(
+                    matches!(
+                        (kind, address),
+                        ("IP-CIDR", std::net::IpAddr::V4(_)) | ("IP-CIDR6", std::net::IpAddr::V6(_))
+                    ),
+                    "Invalid CIDR address family"
+                );
+                ensure!(bits <= if address.is_ipv4() { 32 } else { 128 }, "Invalid CIDR prefix");
+            } else {
+                ensure!(
+                    value
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'-' | b'_')),
+                    "Invalid domain rule"
+                );
+            }
+            Ok(format!(
+                "{kind},{value},{group}{}",
+                if kind.starts_with("IP-CIDR") { ",no-resolve" } else { "" }
+            )
+            .into())
+        })
+        .collect()
+}
+
 fn reject_service(mut config: Mapping, service_rules: &[Value], group_name: &str) -> Mapping {
     let mut rules: Vec<Value> = service_rules
         .iter()
@@ -415,6 +483,22 @@ fn codex_rules() -> Vec<Value> {
         .collect()
 }
 
+pub fn default_service_rules(service: &str) -> Result<Vec<String>> {
+    let rules = match service {
+        "Claude" => claude_rules(),
+        "Codex" => codex_rules(),
+        _ => bail!("Unknown routing service"),
+    };
+    Ok(rules
+        .into_iter()
+        .filter_map(|rule| {
+            let text = rule.as_str()?;
+            let mut pieces = text.split(',');
+            Some(format!("{},{}", pieces.next()?, pieces.next()?))
+        })
+        .collect())
+}
+
 // CleanIP Claude rules, reviewed 2026-11-25. This is a versioned snapshot, not a remote executable script.
 fn claude_rules() -> Vec<Value> {
     let domains = "claude.ai,anthropic.com,claude.com,claudeusercontent.com,claude.app,claudemcpcontent.com,clau.de,intercom.io,intercomcdn.com,intercomassets.com,intercom-messenger.com,us5.datadoghq.com,browser-intake-us5-datadoghq.com,r.stripe.com,us.sentry.io,siftscience.com,fcmtoken.googleapis.com,claudemcpclient.com,servd-anthropic-website.b-cdn.net,anthropic.auth0.com,anthropic-com.ghost.io,anthropic.com.cdn.cloudflare.net,claude.dev,claude.site,claudeacademy.com,claude.new,ant.dev,anthropic.team,antspace.dev,chatbotclaude.com,claudepages.dev,claudestudio.com,hcaptcha.com,challenges.cloudflare.com,withpersona.com,yoti.com,statsigapi.net,usefathom.com";
@@ -432,6 +516,29 @@ fn claude_rules() -> Vec<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn edited_rules_are_scoped_and_invalid_rules_fail_closed() -> Result<()> {
+        let mut settings = routing();
+        settings.rules = Some(vec!["DOMAIN-SUFFIX,example.com".into(), "IP-CIDR,10.1.0.0/16".into()]);
+        let config = settings.apply(Mapping::new())?;
+        assert_eq!(
+            config["rules"][0].as_str(),
+            Some("DOMAIN-SUFFIX,example.com,Claude-Verge")
+        );
+        assert_eq!(
+            config["rules"][1].as_str(),
+            Some("IP-CIDR,10.1.0.0/16,Claude-Verge,no-resolve")
+        );
+        settings.rules = Some(vec!["DOMAIN,example.com,DIRECT".into()]);
+        assert!(settings.validate().is_err());
+        assert_eq!(
+            settings.apply(Mapping::new())?["rules"][0].as_str(),
+            Some("DOMAIN-SUFFIX,claude.ai,REJECT")
+        );
+        assert!(default_service_rules("Claude")?.contains(&"DOMAIN-SUFFIX,claude.ai".to_string()));
+        Ok(())
+    }
 
     #[test]
     fn codex_and_claude_keep_independent_exits_and_fail_closed() -> Result<()> {
@@ -473,7 +580,7 @@ mod tests {
     }
 
     fn routing() -> ClaudeRouting {
-        ClaudeRouting { enabled: true, selected_exit: "US".into(), exit_names: vec!["US".into(), "Static".into()], configuration: "proxies:\n  - {name: Static, type: http, server: example.com, port: 8080}\nproxy-providers:\n  VPS: {type: http, url: 'https://example.com/sub', path: '../../unsafe.yaml'}\nproxy-groups:\n  - {name: US, type: select, proxies: [Static]}\n".into() }
+        ClaudeRouting { enabled: true, selected_exit: "US".into(), exit_names: vec!["US".into(), "Static".into()], configuration: "proxies:\n  - {name: Static, type: http, server: example.com, port: 8080}\nproxy-providers:\n  VPS: {type: http, url: 'https://example.com/sub', path: '../../unsafe.yaml'}\nproxy-groups:\n  - {name: US, type: select, proxies: [Static]}\n".into(), rules: None }
     }
 
     #[test]
