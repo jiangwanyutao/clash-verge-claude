@@ -111,21 +111,22 @@ export const ClashModeCard = () => {
 
   const buttonStyles = (mode: ClashMode) => ({
     cursor: 'pointer',
-    px: 2,
-    py: 1.2,
+    px: 0.75,
+    py: 0.75,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 1,
-    bgcolor: mode === currentMode ? 'primary.main' : 'background.paper',
+    gap: 0.5,
+    whiteSpace: 'nowrap',
+    bgcolor: mode === currentMode ? 'primary.main' : 'var(--glass-muted)',
     color: mode === currentMode ? 'primary.contrastText' : 'text.primary',
-    borderRadius: 1.5,
+    borderRadius: 'var(--glass-radius-control)',
     transition: 'all 0.2s ease-in-out',
     position: 'relative',
     overflow: 'visible',
     '&:hover': {
       transform: 'translateY(-1px)',
-      boxShadow: 1,
+      boxShadow: 'var(--glass-card-shadow)',
     },
     '&:active': {
       transform: 'translateY(1px)',
@@ -150,11 +151,11 @@ export const ClashModeCard = () => {
     textAlign: 'center',
     color: 'text.secondary',
     p: 0.8,
-    borderRadius: 1,
+    borderRadius: 'var(--glass-radius-control)',
     borderColor: 'primary.main',
     borderWidth: 1,
     borderStyle: 'solid',
-    backgroundColor: 'background.paper',
+    backgroundColor: 'var(--glass-muted)',
     wordBreak: 'break-word',
     hyphens: 'auto',
   }
@@ -185,6 +186,7 @@ export const ClashModeCard = () => {
               sx={{
                 textTransform: 'capitalize',
                 fontWeight: mode === currentMode ? 600 : 400,
+                whiteSpace: 'nowrap',
               }}
             >
               {t(MODE_META[mode].label)}

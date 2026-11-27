@@ -275,7 +275,7 @@ const HomePage = () => {
       if (!homeCards[cardKey]) return null
 
       return (
-        <Grid size={size} key={cardKey}>
+        <Grid size={{ xs: 6, md: size }} key={cardKey}>
           {component}
         </Grid>
       )
@@ -285,16 +285,11 @@ const HomePage = () => {
 
   const criticalCards = useMemo(
     () => [
-      renderCard(
-        'profile',
-        <HomeProfileCard current={current} onProfileUpdated={mutateProfiles} />,
-      ),
-      renderCard('proxy', <CurrentProxyCard />),
-      renderCard('dedicatedRouting', <DedicatedRoutingCard />),
-      renderCard('network', <NetworkSettingsCard />),
-      renderCard('mode', <ClashModeEnhancedCard />),
+      renderCard('proxy', <CurrentProxyCard />, 4),
+      renderCard('mode', <ClashModeEnhancedCard />, 4),
+      renderCard('network', <NetworkSettingsCard />, 4),
     ],
-    [current, mutateProfiles, renderCard],
+    [renderCard],
   )
 
   const nonCriticalCards = useMemo(
@@ -308,7 +303,27 @@ const HomePage = () => {
         >
           <EnhancedTrafficStats />
         </EnhancedCard>,
-        12,
+        8,
+      ),
+      renderCard('dedicatedRouting', <DedicatedRoutingCard />, 4),
+      renderCard(
+        'profile',
+        <HomeProfileCard current={current} onProfileUpdated={mutateProfiles} />,
+        4,
+      ),
+      renderCard(
+        'ip',
+        <Suspense fallback={<Skeleton variant="rectangular" height={200} />}>
+          <LazyIpInfoCard />
+        </Suspense>,
+        4,
+      ),
+      renderCard(
+        'systeminfo',
+        <Suspense fallback={<Skeleton variant="rectangular" height={200} />}>
+          <LazySystemInfoCard />
+        </Suspense>,
+        4,
       ),
       renderCard(
         'test',
@@ -317,74 +332,71 @@ const HomePage = () => {
         </Suspense>,
       ),
       renderCard(
-        'ip',
-        <Suspense fallback={<Skeleton variant="rectangular" height={200} />}>
-          <LazyIpInfoCard />
-        </Suspense>,
-      ),
-      renderCard(
         'clashinfo',
         <Suspense fallback={<Skeleton variant="rectangular" height={200} />}>
           <LazyClashInfoCard />
         </Suspense>,
       ),
-      renderCard(
-        'systeminfo',
-        <Suspense fallback={<Skeleton variant="rectangular" height={200} />}>
-          <LazySystemInfoCard />
-        </Suspense>,
-      ),
     ],
-    [t, renderCard],
+    [t, current, mutateProfiles, renderCard],
   )
   return (
-    <BasePage
-      title={t('home.page.title')}
-      contentStyle={{ padding: 2 }}
-      header={
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title={t('home.page.tooltips.lightweightMode')} arrow>
-            <IconButton
-              onClick={async () =>
-                await mutate(() => entry_lightweight_mode(), {
-                  id: 'entry-lightweight-mode',
-                  errorNotice: false,
-                })
-              }
-              size="small"
-              color="inherit"
-            >
-              <HistoryEduOutlined />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('home.page.tooltips.manual')} arrow>
-            <IconButton onClick={toGithubDoc} size="small" color="inherit">
-              <HelpOutlineRounded />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('home.page.tooltips.settings')} arrow>
-            <IconButton onClick={openSettings} size="small" color="inherit">
-              <SettingsOutlined />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      }
+    <Box
+      sx={{
+        height: '100%',
+        '& .base-container, & .base-container > section': {
+          backgroundColor: 'transparent !important',
+        },
+      }}
     >
-      <Grid container spacing={1.5} columns={{ xs: 6, sm: 6, md: 12 }}>
-        {criticalCards}
+      <BasePage
+        title={t('home.page.title')}
+        contentStyle={{ padding: 2 }}
+        header={
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Tooltip title={t('home.page.tooltips.lightweightMode')} arrow>
+              <IconButton
+                onClick={async () =>
+                  await mutate(() => entry_lightweight_mode(), {
+                    id: 'entry-lightweight-mode',
+                    errorNotice: false,
+                  })
+                }
+                size="small"
+                color="inherit"
+              >
+                <HistoryEduOutlined />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('home.page.tooltips.manual')} arrow>
+              <IconButton onClick={toGithubDoc} size="small" color="inherit">
+                <HelpOutlineRounded />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('home.page.tooltips.settings')} arrow>
+              <IconButton onClick={openSettings} size="small" color="inherit">
+                <SettingsOutlined />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        }
+      >
+        <Grid container spacing={1.5} columns={{ xs: 6, sm: 6, md: 12 }}>
+          {criticalCards}
 
-        {nonCriticalCards}
-      </Grid>
+          {nonCriticalCards}
+        </Grid>
 
-      {/* 首页设置弹窗 */}
-      {settingsOpen && (
-        <HomeSettingsDialog
-          key={serializeCardFlags(homeCards)}
-          onClose={() => setSettingsOpen(false)}
-          homeCards={homeCards}
-        />
-      )}
-    </BasePage>
+        {/* 首页设置弹窗 */}
+        {settingsOpen && (
+          <HomeSettingsDialog
+            key={serializeCardFlags(homeCards)}
+            onClose={() => setSettingsOpen(false)}
+            homeCards={homeCards}
+          />
+        )}
+      </BasePage>
+    </Box>
   )
 }
 

@@ -63,9 +63,9 @@ const CompactStatCard = memo(
         sx={{
           display: 'flex',
           alignItems: 'center',
-          borderRadius: 2,
-          bgcolor: alpha(colorValue, 0.05),
-          border: `1px solid ${alpha(colorValue, 0.15)}`,
+          borderRadius: 'var(--glass-radius-control)',
+          bgcolor: 'var(--glass-muted)',
+          border: '1px solid var(--glass-hairline)',
           padding: '8px',
           transition: 'all 0.2s ease-in-out',
           cursor: onClick ? 'pointer' : 'default',
@@ -73,7 +73,7 @@ const CompactStatCard = memo(
             ? {
                 bgcolor: alpha(colorValue, 0.1),
                 border: `1px solid ${alpha(colorValue, 0.3)}`,
-                boxShadow: `0 4px 8px rgba(0,0,0,0.05)`,
+                boxShadow: 'var(--glass-card-shadow)',
               }
             : {},
         }}
@@ -90,7 +90,7 @@ const CompactStatCard = memo(
             justifyContent: 'center',
             width: 32,
             height: 32,
-            borderRadius: '50%',
+            borderRadius: 'var(--glass-radius-control)',
             bgcolor: alpha(colorValue, 0.1),
             color: colorValue,
           }}
@@ -110,7 +110,11 @@ const CompactStatCard = memo(
             <Typography
               variant="body1"
               noWrap
-              sx={{ mr: 0.5, fontWeight: 'bold' }}
+              sx={{
+                mr: 0.5,
+                fontWeight: 'bold',
+                fontVariantNumeric: 'tabular-nums',
+              }}
             >
               {value}
             </Typography>
@@ -129,7 +133,6 @@ CompactStatCard.displayName = 'CompactStatCard'
 
 export const EnhancedTrafficStats = () => {
   const { t } = useTranslation()
-  const theme = useTheme()
   const { verge } = useVerge()
   const trafficRef = useRef<EnhancedCanvasTrafficGraphRef>(null)
   const pageVisible = useVisibility()
@@ -187,8 +190,8 @@ export const EnhancedTrafficStats = () => {
         sx={{
           height: 130,
           cursor: 'pointer',
-          border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
-          borderRadius: 2,
+          border: '1px solid var(--glass-hairline)',
+          borderRadius: 'var(--glass-radius-control)',
           overflow: 'hidden',
         }}
         onClick={() => trafficRef.current?.toggleStyle()}
@@ -198,7 +201,7 @@ export const EnhancedTrafficStats = () => {
         </div>
       </Paper>
     )
-  }, [trafficGraph, pageVisible, theme.palette.divider])
+  }, [trafficGraph, pageVisible])
 
   // 使用useMemo计算统计卡片配置
   const statCards = useMemo(() => {

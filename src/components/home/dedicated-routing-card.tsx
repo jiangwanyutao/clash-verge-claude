@@ -34,7 +34,14 @@ function RoutingRow({
     }
   }
   return (
-    <Box sx={{ py: 1 }}>
+    <Box
+      sx={{
+        p: 1.25,
+        mb: 1,
+        bgcolor: 'var(--glass-muted)',
+        borderRadius: 'var(--glass-radius-control)',
+      }}
+    >
       <Stack
         direction="row"
         sx={{ alignItems: 'center', justifyContent: 'space-between' }}
@@ -54,7 +61,11 @@ function RoutingRow({
       <Typography variant="body2" color="text.secondary">
         当前出口：{exit || '未配置'}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ fontVariantNumeric: 'tabular-nums' }}
+      >
         测试地址延迟：{enabled ? result : '未检测'} · 出口 IP：暂不支持
       </Typography>
     </Box>

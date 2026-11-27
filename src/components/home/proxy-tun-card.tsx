@@ -41,22 +41,23 @@ const TabButton: FC<TabButtonProps> = memo(
       onClick={onClick}
       sx={{
         cursor: 'pointer',
-        px: 2,
-        py: 1,
+        px: 0.5,
+        py: 0.75,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 1,
-        bgcolor: isActive ? 'primary.main' : 'background.paper',
+        gap: 0.25,
+        whiteSpace: 'nowrap',
+        bgcolor: isActive ? 'primary.main' : 'var(--glass-muted)',
         color: isActive ? 'primary.contrastText' : 'text.primary',
-        borderRadius: 1.5,
+        borderRadius: 'var(--glass-radius-control)',
         flex: 1,
         maxWidth: 160,
         transition: 'all 0.2s ease-in-out',
         position: 'relative',
         '&:hover': {
           transform: 'translateY(-1px)',
-          boxShadow: 1,
+          boxShadow: 'var(--glass-card-shadow)',
         },
         '&:after': isActive
           ? {
@@ -73,7 +74,14 @@ const TabButton: FC<TabButtonProps> = memo(
       }}
     >
       <Icon fontSize="small" />
-      <Typography variant="body2" sx={{ fontWeight: isActive ? 600 : 400 }}>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: isActive ? 600 : 400,
+          whiteSpace: 'nowrap',
+          fontSize: 12,
+        }}
+      >
         {label}
       </Typography>
       {hasIndicator && (
@@ -81,8 +89,8 @@ const TabButton: FC<TabButtonProps> = memo(
           sx={{
             width: 8,
             height: 8,
-            borderRadius: '50%',
-            bgcolor: isActive ? '#fff' : 'success.main',
+            borderRadius: 'var(--glass-radius-control)',
+            bgcolor: isActive ? 'primary.contrastText' : 'success.main',
             position: 'absolute',
             top: 8,
             right: 8,
@@ -110,11 +118,11 @@ const TabDescription: FC<TabDescriptionProps> = memo(
           textAlign: 'center',
           color: 'text.secondary',
           p: 0.8,
-          borderRadius: 1,
+          borderRadius: 'var(--glass-radius-control)',
           borderColor: 'primary.main',
           borderWidth: 1,
           borderStyle: 'solid',
-          backgroundColor: 'background.paper',
+          backgroundColor: 'var(--glass-muted)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -226,7 +234,7 @@ export const ProxyTunCard: FC = () => {
           mt: 0,
           p: 1,
           bgcolor: alpha(theme.palette.primary.main, 0.04),
-          borderRadius: 2,
+          borderRadius: 'var(--glass-radius-control)',
         }}
       >
         <ProxyControlSwitches
