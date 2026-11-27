@@ -94,6 +94,7 @@ export const LayoutTraffic = () => {
   const [up, upUnit] = parseTraffic(traffic?.up || 0)
   const [down, downUnit] = parseTraffic(traffic?.down || 0)
   const [inuse, inuseUnit] = parseTraffic(memory?.inuse || 0)
+  const connected = pageVisible && !!traffic
 
   const boxStyle: Pick<BoxProps, 'sx'> = {
     sx: {
@@ -128,6 +129,34 @@ export const LayoutTraffic = () => {
   return (
     <LightweightTrafficErrorBoundary>
       <Box sx={{ position: 'relative' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 0.5,
+          }}
+        >
+          <Typography variant="caption" color="text.secondary">
+            实时流量
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                bgcolor: connected ? 'success.main' : 'grey.500',
+              }}
+            />
+            <Typography
+              variant="caption"
+              sx={{ color: connected ? 'success.main' : 'text.secondary' }}
+            >
+              {connected ? '已连接' : '未连接'}
+            </Typography>
+          </Box>
+        </Box>
         {trafficGraph && pageVisible && (
           <div
             style={{ width: '100%', height: 60, marginBottom: 6 }}
