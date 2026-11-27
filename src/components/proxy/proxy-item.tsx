@@ -71,9 +71,12 @@ export const ProxyItem = (props: Props) => {
         selected={!unresolved && selected}
         onClick={unresolved ? undefined : () => onClick?.(member)}
         sx={[
-          { borderRadius: 1 },
+          {
+            borderRadius: 'var(--glass-radius-control)',
+            fontVariantNumeric: 'tabular-nums',
+          },
           ({ palette: { mode, primary } }) => {
-            const bgcolor = mode === 'light' ? '#ffffff' : '#24252f'
+            const bgcolor = 'var(--glass-bg-strong)'
             const selectColor = mode === 'light' ? primary.main : primary.light
             const showDelay = delayValue > 0
 

@@ -145,100 +145,109 @@ const ProxyPage = () => {
   }, [normalizedMode, onChangeMode])
 
   return (
-    <BasePage
-      full
-      contentStyle={{
+    <Box
+      sx={{
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
+        '& .base-container, & .base-container > section': {
+          backgroundColor: 'transparent !important',
+        },
       }}
-      title={
-        isChainMode ? (
+    >
+      <BasePage
+        full
+        contentStyle={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+        title={
+          isChainMode ? (
+            <Box
+              component="span"
+              data-tauri-drag-region="true"
+              sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}
+            >
+              {t('proxies.page.title.chainMode')}
+              <TooltipIcon
+                title={chainWarning}
+                icon={WarningRounded}
+                color="warning"
+                sx={{ p: 0.25 }}
+              />
+            </Box>
+          ) : (
+            t('proxies.page.title.default')
+          )
+        }
+        header={
           <Box
-            component="span"
-            data-tauri-drag-region="true"
-            sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
           >
-            {t('proxies.page.title.chainMode')}
-            <TooltipIcon
-              title={chainWarning}
-              icon={WarningRounded}
-              color="warning"
-              sx={{ p: 0.25 }}
-            />
+            <ProviderButton />
+
+            <ButtonGroup size="small">
+              {MODES.map((mode) => (
+                <Button
+                  key={mode}
+                  variant={mode === curMode ? 'contained' : 'outlined'}
+                  onClick={() => onChangeMode(mode)}
+                  sx={{ textTransform: 'capitalize' }}
+                >
+                  {t(`proxies.page.modes.${mode}`)}
+                </Button>
+              ))}
+            </ButtonGroup>
+
+            <Button
+              size="small"
+              variant={isChainMode ? 'contained' : 'outlined'}
+              onClick={onToggleChainMode}
+              sx={{ ml: 1 }}
+              startIcon={
+                isChainMode ? (
+                  <LanRounded fontSize="small" />
+                ) : (
+                  <LanOutlined fontSize="small" />
+                )
+              }
+            >
+              {t('proxies.page.actions.toggleChain')}
+            </Button>
           </Box>
-        ) : (
-          t('proxies.page.title.default')
-        )
-      }
-      header={
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            flexWrap: 'wrap',
+        }
+      >
+        <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
+        <ClaudeRoutingPanel mode={curMode ?? 'rule'} service="Codex" />
+        <Box sx={{ flex: 1, minHeight: 0 }}>
+          <ProxyGroups
+            mode={curMode ?? 'rule'}
+            isChainMode={isChainMode}
+            chainConfigData={chainConfigData}
+            onExitChainMode={onExitChainMode}
+          />
+        </Box>
+        <BaseDialog
+          open={chainConfirmOpen}
+          title={t('proxies.page.actions.toggleChain')}
+          okBtn={t('proxies.page.chain.confirmEnable')}
+          cancelBtn={t('proxies.page.chain.keepDisabled')}
+          contentSx={{ width: { xs: 320, sm: 420 } }}
+          onCancel={() => setChainConfirmOpen(false)}
+          onClose={() => setChainConfirmOpen(false)}
+          onOk={() => {
+            setChainConfirmOpen(false)
+            applyChainMode(true)
           }}
         >
-          <ProviderButton />
-
-          <ButtonGroup size="small">
-            {MODES.map((mode) => (
-              <Button
-                key={mode}
-                variant={mode === curMode ? 'contained' : 'outlined'}
-                onClick={() => onChangeMode(mode)}
-                sx={{ textTransform: 'capitalize' }}
-              >
-                {t(`proxies.page.modes.${mode}`)}
-              </Button>
-            ))}
-          </ButtonGroup>
-
-          <Button
-            size="small"
-            variant={isChainMode ? 'contained' : 'outlined'}
-            onClick={onToggleChainMode}
-            sx={{ ml: 1 }}
-            startIcon={
-              isChainMode ? (
-                <LanRounded fontSize="small" />
-              ) : (
-                <LanOutlined fontSize="small" />
-              )
-            }
-          >
-            {t('proxies.page.actions.toggleChain')}
-          </Button>
-        </Box>
-      }
-    >
-      <ClaudeRoutingPanel mode={curMode ?? 'rule'} />
-      <ClaudeRoutingPanel mode={curMode ?? 'rule'} service="Codex" />
-      <Box sx={{ flex: 1, minHeight: 0 }}>
-        <ProxyGroups
-          mode={curMode ?? 'rule'}
-          isChainMode={isChainMode}
-          chainConfigData={chainConfigData}
-          onExitChainMode={onExitChainMode}
-        />
-      </Box>
-      <BaseDialog
-        open={chainConfirmOpen}
-        title={t('proxies.page.actions.toggleChain')}
-        okBtn={t('proxies.page.chain.confirmEnable')}
-        cancelBtn={t('proxies.page.chain.keepDisabled')}
-        contentSx={{ width: { xs: 320, sm: 420 } }}
-        onCancel={() => setChainConfirmOpen(false)}
-        onClose={() => setChainConfirmOpen(false)}
-        onOk={() => {
-          setChainConfirmOpen(false)
-          applyChainMode(true)
-        }}
-      >
-        <Typography variant="body2">{chainWarning}</Typography>
-      </BaseDialog>
-    </BasePage>
+          <Typography variant="body2">{chainWarning}</Typography>
+        </BaseDialog>
+      </BasePage>
+    </Box>
   )
 }
 

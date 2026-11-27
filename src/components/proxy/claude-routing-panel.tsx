@@ -108,9 +108,13 @@ export function ClaudeRoutingPanel({
       sx={{
         px: 2,
         py: 1.5,
+        mx: 2,
+        mt: 1.5,
         flexShrink: 0,
-        borderBottom: 1,
-        borderColor: 'divider',
+        bgcolor: 'var(--glass-bg-strong)',
+        border: '1px solid var(--glass-edge)',
+        borderRadius: 'var(--glass-radius-card)',
+        boxShadow: 'var(--glass-card-shadow)',
       }}
     >
       <Stack

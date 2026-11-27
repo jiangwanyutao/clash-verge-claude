@@ -45,14 +45,15 @@ export const ProxyItemMini = (props: Props) => {
       sx={[
         {
           height: 56,
-          borderRadius: 1.5,
+          borderRadius: 'var(--glass-radius-control)',
+          fontVariantNumeric: 'tabular-nums',
           pl: 1.5,
           pr: 1,
           justifyContent: 'space-between',
           alignItems: 'center',
         },
         ({ palette: { mode, primary } }) => {
-          const bgcolor = mode === 'light' ? '#ffffff' : '#24252f'
+          const bgcolor = 'var(--glass-bg-strong)'
           const showDelay = delayValue > 0
           const selectColor = mode === 'light' ? primary.main : primary.light
 

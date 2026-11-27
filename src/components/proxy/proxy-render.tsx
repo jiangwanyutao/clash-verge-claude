@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next'
 
 import { useIconCache } from '@/hooks/use-icon-cache'
 import { useVerge } from '@/hooks/use-verge'
-import { useThemeMode } from '@/services/states'
 import type { ResolvedProxyMember } from '@/types/proxy-view'
 
 import { ProxyGroupHeaderBlock } from './proxy-group-header-block'
@@ -60,9 +59,6 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const enable_group_icon = verge?.enable_group_icon ?? true
   const toolsOnLeft = verge?.proxy_group_tools_position === 'left'
   const headerId = useId()
-  const mode = useThemeMode()
-  const isDark = mode === 'dark'
-  const itembackgroundcolor = isDark ? '#282A36' : '#ffffff'
   const iconCachePath = useIconCache({
     icon: group.icon,
     cacheKey: group.name.replaceAll(' ', ''),
@@ -216,13 +212,13 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           sx={{
             boxShadow:
               stickyed && headState?.open
-                ? '0 4px 8px rgba(0, 0, 0, 0.2) !important'
+                ? 'var(--glass-card-shadow)'
                 : undefined,
           }}
           style={{
-            background: itembackgroundcolor,
+            background: 'var(--glass-bg-strong)',
             height: '100%',
-            borderRadius: '8px',
+            borderRadius: 'var(--glass-radius-control)',
           }}
           onClick={() => {
             if (headState?.open) {

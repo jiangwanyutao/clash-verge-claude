@@ -61,6 +61,8 @@ export const ProxyEmptyState = ({ reason }: Props) => {
     <Box
       sx={{
         width: '100%',
+        boxSizing: 'border-box',
+        minWidth: 0,
         height: '100%',
         display: 'flex',
         alignItems: 'center',
@@ -71,7 +73,12 @@ export const ProxyEmptyState = ({ reason }: Props) => {
       <Alert
         severity="warning"
         variant="outlined"
-        sx={{ width: '100%', maxWidth: 640 }}
+        sx={{
+          width: '100%',
+          maxWidth: 640,
+          bgcolor: 'var(--glass-bg-strong)',
+          borderRadius: 'var(--glass-radius-card)',
+        }}
       >
         <AlertTitle>{title}</AlertTitle>
         {description}
