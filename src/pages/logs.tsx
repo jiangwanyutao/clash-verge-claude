@@ -3,7 +3,7 @@ import {
   PauseCircleOutlineRounded,
   SwapVertRounded,
 } from '@mui/icons-material'
-import { Box, Button, IconButton, MenuItem } from '@mui/material'
+import { Box, Button, ButtonGroup, IconButton } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -11,7 +11,6 @@ import {
   BaseEmpty,
   BasePage,
   BaseSearchBox,
-  BaseStyledSelect,
   type SearchState,
   VirtualList,
   type VirtualListHandle,
@@ -19,6 +18,14 @@ import {
 import LogItem from '@/components/log/log-item'
 import { useClashLog } from '@/hooks/use-clash-log'
 import { useLogData } from '@/hooks/use-log-data'
+
+const LOG_LEVELS: { value: LogFilter; key: string }[] = [
+  { value: 'all', key: 'shared.filters.logLevels.all' },
+  { value: 'info', key: 'shared.filters.logLevels.info' },
+  { value: 'warn', key: 'shared.filters.logLevels.warn' },
+  { value: 'err', key: 'shared.filters.logLevels.error' },
+  { value: 'debug', key: 'shared.filters.logLevels.debug' },
+]
 
 const LogPage = () => {
   const { t } = useTranslation()
@@ -106,24 +113,39 @@ const LogPage = () => {
           overflow: 'auto',
         }}
         header={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              title={t(
-                enableLog ? 'shared.actions.pause' : 'shared.actions.resume',
-              )}
-              aria-label={t(
-                enableLog ? 'shared.actions.pause' : 'shared.actions.resume',
-              )}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
+          >
+            <ButtonGroup size="small">
+              {LOG_LEVELS.map(({ value, key }) => (
+                <Button
+                  key={value}
+                  variant={logState === value ? 'contained' : 'outlined'}
+                  onClick={() => handleLogLevelChange(value)}
+                >
+                  {t(key)}
+                </Button>
+              ))}
+            </ButtonGroup>
+            <Button
               size="small"
-              color="inherit"
+              variant="outlined"
               onClick={handleToggleLog}
+              startIcon={
+                enableLog ? (
+                  <PauseCircleOutlineRounded />
+                ) : (
+                  <PlayCircleOutlineRounded />
+                )
+              }
             >
-              {enableLog ? (
-                <PauseCircleOutlineRounded />
-              ) : (
-                <PlayCircleOutlineRounded />
-              )}
-            </IconButton>
+              {t(enableLog ? 'shared.actions.pause' : 'shared.actions.resume')}
+            </Button>
             <IconButton
               title={t(
                 isDescending
@@ -164,29 +186,11 @@ const LogPage = () => {
             pt: 1,
             mb: 0.5,
             mx: '10px',
-            height: '39px',
             display: 'flex',
             alignItems: 'center',
+            gap: 2,
           }}
         >
-          <BaseStyledSelect
-            value={logState}
-            onChange={(e) => handleLogLevelChange(e.target.value as LogFilter)}
-          >
-            <MenuItem value="all">{t('shared.filters.logLevels.all')}</MenuItem>
-            <MenuItem value="debug">
-              {t('shared.filters.logLevels.debug')}
-            </MenuItem>
-            <MenuItem value="info">
-              {t('shared.filters.logLevels.info')}
-            </MenuItem>
-            <MenuItem value="warn">
-              {t('shared.filters.logLevels.warn')}
-            </MenuItem>
-            <MenuItem value="err">
-              {t('shared.filters.logLevels.error')}
-            </MenuItem>
-          </BaseStyledSelect>
           <BaseSearchBox
             onSearch={(matcher, state) => {
               setMatch(() => matcher)
