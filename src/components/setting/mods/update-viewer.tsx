@@ -173,14 +173,21 @@ const remarkGitHubAlerts = (labels: Record<GitHubAlertType, string>) => {
   return visit
 }
 
-export function UpdateViewer({ ref }: { ref?: Ref<DialogRef> }) {
+export function UpdateViewer({
+  ref,
+  update,
+}: {
+  ref?: Ref<DialogRef>
+  update?: import('@tauri-apps/plugin-updater').Update | null
+}) {
   const { t, i18n } = useTranslation()
 
   const [open, setOpen] = useState(false)
   const updateState = useUpdateState()
   const setUpdateState = useSetUpdateState()
 
-  const { updateInfo } = useUpdate()
+  const { updateInfo: automaticUpdate } = useUpdate()
+  const updateInfo = update ?? automaticUpdate
 
   const [downloaded, setDownloaded] = useState(0)
   const [total, setTotal] = useState(0)
@@ -235,7 +242,7 @@ export function UpdateViewer({ ref }: { ref?: Ref<DialogRef> }) {
   }, [updateInfo])
 
   const onUpdate = useLockFn(async () => {
-    if (!updateInfo?.body) return
+    if (!updateInfo?.version) return
     if (breakChangeFlag) {
       showNotice.error('settings.modals.update.messages.breakChangeError')
       return

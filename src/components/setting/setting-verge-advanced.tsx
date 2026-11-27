@@ -1,6 +1,7 @@
 import { ContentCopyRounded } from '@mui/icons-material'
 import { Typography } from '@mui/material'
-import { useCallback, useRef } from 'react'
+import type { Update } from '@tauri-apps/plugin-updater'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DialogRef, TooltipIcon } from '@/components/base'
@@ -41,6 +42,7 @@ const SettingVergeAdvanced = ({ onError: _ }: Props) => {
   const themeRef = useRef<DialogRef>(null)
   const layoutRef = useRef<DialogRef>(null)
   const updateRef = useRef<DialogRef>(null)
+  const [manualUpdate, setManualUpdate] = useState<Update | null>(null)
   const backupRef = useRef<DialogRef>(null)
   const liteModeRef = useRef<DialogRef>(null)
 
@@ -53,6 +55,7 @@ const SettingVergeAdvanced = ({ onError: _ }: Props) => {
           'settings.components.verge.advanced.notifications.latestVersion',
         )
       } else {
+        setManualUpdate(info)
         updateRef.current?.open()
       }
     } catch (err) {
@@ -85,7 +88,7 @@ const SettingVergeAdvanced = ({ onError: _ }: Props) => {
       <HotkeyViewer ref={hotkeyRef} />
       <MiscViewer ref={miscRef} />
       <LayoutViewer ref={layoutRef} />
-      <UpdateViewer ref={updateRef} />
+      <UpdateViewer ref={updateRef} update={manualUpdate} />
       <BackupViewer ref={backupRef} />
       <LiteModeViewer ref={liteModeRef} />
 
