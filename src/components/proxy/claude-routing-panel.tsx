@@ -1,3 +1,4 @@
+import { SpeedRounded } from '@mui/icons-material'
 import {
   Alert,
   Avatar,
@@ -16,6 +17,7 @@ import { useRef, useState } from 'react'
 import { BaseDialog } from '@/components/base'
 import { routingTraffic } from '@/components/rule/routing-traffic'
 import { useVerge } from '@/hooks/use-verge'
+import delayManager from '@/services/delay'
 import { showNotice } from '@/services/notice-service'
 import parseTraffic from '@/utils/parse-traffic'
 
@@ -52,6 +54,8 @@ export function ClaudeRoutingPanel({
   const [configuration, setConfiguration] = useState('')
   const [exits, setExits] = useState('')
   const [error, setError] = useState('')
+  const [delay, setDelay] = useState<number | null>(null)
+  const [testing, setTesting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const snapshotRef = useRef<HTMLInputElement>(null)
 
@@ -119,6 +123,27 @@ export function ClaudeRoutingPanel({
   const selectedExit = routing.exit_names.includes(routing.selected_exit)
     ? routing.selected_exit
     : ''
+
+  const testUrl =
+    verge?.default_latency_test?.trim() ||
+    'http://cp.cloudflare.com/generate_204'
+  const testTimeout = verge?.default_latency_timeout || 10000
+  const runTest = useLockFn(async () => {
+    if (!selectedExit) return
+    setTesting(true)
+    try {
+      const result = await delayManager.unifiedDelayCheck(
+        selectedExit,
+        testUrl,
+        testTimeout,
+      )
+      setDelay(result.delay)
+    } catch {
+      setDelay(1e6)
+    } finally {
+      setTesting(false)
+    }
+  })
 
   const exitSelect = (
     <TextField
@@ -244,6 +269,23 @@ export function ClaudeRoutingPanel({
         {exitSelect}
         <Button
           variant="outlined"
+          disabled={busy || testing || !selectedExit}
+          onClick={runTest}
+          startIcon={<SpeedRounded />}
+          sx={{
+            flexShrink: 0,
+            color:
+              delay != null ? delayManager.formatDelayColor(delay) : undefined,
+          }}
+        >
+          {testing
+            ? '检测中'
+            : delay != null
+              ? delayManager.formatDelay(delay)
+              : '检测'}
+        </Button>
+        <Button
+          variant="outlined"
           disabled={busy || !verge}
           onClick={configure}
           sx={{ flexShrink: 0 }}
@@ -271,23 +313,6 @@ export function ClaudeRoutingPanel({
         {statusText}
       </Typography>
 
-      <Box
-        component="details"
-        sx={{ mt: 0.5, color: 'text.secondary', typography: 'body2' }}
-      >
-        <Box
-          component="summary"
-          sx={{ cursor: 'pointer', width: 'fit-content' }}
-        >
-          查看分流说明
-        </Box>
-        <Typography variant="body2" sx={{ mt: 0.5 }}>
-          仅对经过本软件的流量生效；请设置应用代理或开启本软件系统代理。
-        </Typography>
-        <Typography variant="body2" sx={{ mt: 0.5 }}>
-          开启专用分流并使用规则模式时，所选节点不可用会阻断专用请求，不自动直连或切换出口。请选择符合要求的固定节点以恢复连接。
-        </Typography>
-      </Box>
       {routing.enabled && mode !== 'rule' && (
         <Alert severity="warning" sx={{ mt: 1 }}>
           当前不是规则模式，{service} 专用分流不会按规则生效。请先切换到“规则”。
