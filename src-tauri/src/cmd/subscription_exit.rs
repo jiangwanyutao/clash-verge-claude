@@ -110,10 +110,12 @@ async fn runtime_nodes() -> Result<(Vec<(SubscriptionExitNode, Mapping)>, usize)
 pub async fn list_subscription_exit_nodes() -> CmdResult<SubscriptionExitList> {
     let lock = Config::try_lock_config_write().stringify_err()?;
     let manager = CoreManager::global();
-    let _update = manager.claim_config_update(&lock).stringify_err()?;
+    let update = manager.claim_config_update(&lock).stringify_err()?;
     let profile_uid = current_profile(None).await.stringify_err()?;
     let (entries, excluded_override_providers) = runtime_nodes().await.stringify_err()?;
     current_profile(Some(&profile_uid)).await.stringify_err()?;
+    drop(update);
+    drop(lock);
     Ok(SubscriptionExitList {
         profile_uid,
         nodes: entries.into_iter().map(|(node, _)| node).collect(),
@@ -130,10 +132,12 @@ pub async fn snapshot_subscription_exit(
 ) -> CmdResult<std::string::String> {
     let lock = Config::try_lock_config_write().stringify_err()?;
     let manager = CoreManager::global();
-    let _update = manager.claim_config_update(&lock).stringify_err()?;
+    let update = manager.claim_config_update(&lock).stringify_err()?;
     current_profile(Some(&profile_uid)).await.stringify_err()?;
     let result = snapshot(&runtime_nodes().await.stringify_err()?.0, &name, &source).stringify_err()?;
     current_profile(Some(&profile_uid)).await.stringify_err()?;
+    drop(update);
+    drop(lock);
     Ok(result)
 }
 

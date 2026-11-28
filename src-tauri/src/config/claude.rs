@@ -314,24 +314,22 @@ impl ClaudeRouting {
         let mut endpoints = self.endpoints()?;
         // Subscription extensions run first, but cannot claim our persisted control names.
         for key in ["proxies", "proxy-groups"] {
-            if let Some(existing) = config.get(key).and_then(Value::as_sequence) {
-                if existing
+            if let Some(existing) = config.get(key).and_then(Value::as_sequence)
+                && existing
                     .iter()
                     .filter_map(|item| item.get("name").and_then(Value::as_str))
                     .any(|name| name == group_name || name.starts_with(prefix))
-                {
-                    return Ok(reject_service(config, &service_rules, group_name));
-                }
-            }
-        }
-        if let Some(existing) = config.get("proxy-providers").and_then(Value::as_mapping) {
-            if existing
-                .keys()
-                .filter_map(Value::as_str)
-                .any(|name| name.starts_with(prefix))
             {
                 return Ok(reject_service(config, &service_rules, group_name));
             }
+        }
+        if let Some(existing) = config.get("proxy-providers").and_then(Value::as_mapping)
+            && existing
+                .keys()
+                .filter_map(Value::as_str)
+                .any(|name| name.starts_with(prefix))
+        {
+            return Ok(reject_service(config, &service_rules, group_name));
         }
         for node in &mut endpoints.proxies {
             node.insert("name".into(), outbound(name(node)?, prefix).into());

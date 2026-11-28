@@ -1,9 +1,13 @@
 #![allow(non_snake_case)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::items_after_test_module))]
 #![recursion_limit = "512"]
 
 mod cmd;
 pub mod config;
+// Windows uses the isolated sidecar; upstream service support remains for other platforms.
+#[cfg_attr(target_os = "windows", allow(dead_code))]
 mod constants;
+#[cfg_attr(target_os = "windows", allow(dead_code))]
 mod core;
 mod enhance;
 mod feat;
