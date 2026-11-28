@@ -93,8 +93,6 @@ import {
 import type { ElementType } from 'react'
 import { FaGithub, FaTelegram } from 'react-icons/fa6'
 
-export type { SvgIconComponent } from '@mui/icons-material'
-
 const wrap = (Icon: ElementType) =>
   function MuiLucideIcon({ style, ...rest }: SvgIconProps) {
     return (
