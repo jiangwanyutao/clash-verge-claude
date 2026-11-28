@@ -51,7 +51,6 @@
     "@emotion/styled": "^11.14.1",
     "@juggle/resize-observer": "^3.4.0",
     "@monaco-editor/react": "^4.7.0",
-    "@mui/icons-material": "^9.4.0",
     "@mui/material": "^9.4.0",
     "@tanstack/react-virtual": "^3.14.13",
     "@tauri-apps/api": "2.12.4",
